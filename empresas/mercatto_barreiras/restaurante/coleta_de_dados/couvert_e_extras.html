@@ -223,18 +223,17 @@ if (!existente || existente.length === 0) {
     .from('colaboradores')
     .insert([{
       nome: nome,
-      funcao: dados.funcao,
-      pix: dados.dadosPix,
-      titular: dados.titularConta,
+      funcao: dados.funcao || null,
+      pix: dados.dadosPix || null,
+      titular: dados.titularConta || null,
       valor: parseFloat(dados.valorAcordado) || 0,
-      cpf: dados.cpf
+      cpf: dados.cpf || null
     }]);
 
   if (erroColab) {
     console.error("Erro ao salvar colaborador:", erroColab);
   } else {
-    // atualiza lista automaticamente
-    carregarColaboradores();
+    await carregarColaboradores(); // 🔥 AGORA CORRETO
   }
 }
   const { error } = await supabaseClient
