@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#020617">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prompts IA">
+
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta charset="UTF-8">
+<title>GRUPO DV - MERCATTO DELÍCIA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f8fafc;
+  --bg-2:#f1f5f9;
+
+  --primary:#2563eb;
+  --primary-soft:#e0e7ff;
+
+  --text:#0f172a;
+  --text-muted:#64748b;
+
+  --border:#e5e7eb;
+
+  --sidebar:#ffffff;
+  --header:#ffffff;
+
+  --shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+/* RESET */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Inter",sans-serif;
+}
+
+body{
+  min-height:100vh;
+  background:var(--bg);
+  overflow:auto;
+}
+
+.app{
+  display:flex;
+  height:100vh;
+  width:100vw;
+}
+
+/* ===================== SIDEBAR ===================== */
+.nav-hover-zone{
+  position:fixed;
+  left:0;
+  top:0;
+  width:14px;
+  height:100vh;
+  z-index:50;
+}
+
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  width:260px;
+  height:100vh;
+
+  background:var(--sidebar);
+
+  border-right:1px solid var(--border);
+
+  display:flex;
+  flex-direction:column;
+
+  transform:translateX(-260px);
+  transition:.25s ease;
+  z-index:60;
+}
+
+
+
+/* MOBILE */
+.sidebar{
+  transform:translateX(-260px);
+  transition:.25s ease;
+}
+
+.sidebar.open{
+  transform:translateX(0);
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .nav-hover-zone{display:none}
+  .sidebar{transform:translateX(-100%)}
+}
+
+/* ===================== LOGO ===================== */
+.logo-area{
+  padding:20px;
+  text-align:center;
+  border-bottom:1px solid var(--border);
+}
+
+.logo-area img{
+  width:150px;
+}
+
+/* ===================== MENU ===================== */
+.menu{
+  padding:12px;
+  overflow-y:auto;
+}
+
+.menu-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:12px 14px;
+  margin:6px 0;
+
+  font-size:14px;
+  color:var(--text);
+
+  border-radius:10px;
+  cursor:pointer;
+  transition:.15s;
+}
+
+.menu-item img{
+  width:18px;
+  opacity:.6;
+}
+
+.menu-item:hover{
+  background:var(--primary-soft);
+  color:var(--primary);
+}
+
+.menu-item.active{
+  background:var(--primary-soft);
+  border-left:4px solid var(--primary);
+  color:var(--primary);
+  font-weight:700;
+}
+
+/* SUBMENU */
+.submenu{
+  display:none;
+  margin:6px 0 12px 48px;
+}
+
+.submenu a{
+  display:block;
+  padding:8px 10px;
+  font-size:13px;
+  color:var(--text-muted);
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.submenu a:hover{
+  background:#f1f5f9;
+  color:var(--primary);
+}
+
+.submenu a.active-sub{
+  background:#eef2ff;
+  color:var(--primary);
+  font-weight:600;
+}
+
+/* ===================== MAIN ===================== */
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+/* ===================== HEADER ===================== */
+.header{
+  height:60px;
+  background:var(--header);
+  border-bottom:1px solid var(--border);
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 20px;
+
+  box-shadow:var(--shadow);
+}
+
+.logo-title{
+  font-size:18px;
+  font-weight:800;
+  color:var(--primary);
+  letter-spacing:1px;
+}
+
+.user-area{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  font-size:13px;
+  color:var(--text-muted);
+}
+
+.logout{
+  cursor:pointer;
+  font-weight:700;
+  color:var(--primary);
+}
+
+.logout:hover{
+  opacity:.8;
+}
+
+/* MOBILE BUTTON */
+.menu-mobile-btn{
+  display:none;
+  font-size:22px;
+  cursor:pointer;
+  color:var(--primary);
+}
+
+@media(max-width:768px){
+  .menu-mobile-btn{
+    display:block;
+  }
+}
+
+/* ===================== IFRAME ===================== */
+iframe{
+  border:none;
+  width:100%;
+  height:calc(100vh - 60px);
+  background:var(--bg);
+}
+
+/* ===================== SCROLL ===================== */
+.menu::-webkit-scrollbar{
+  width:6px;
+}
+
+.menu::-webkit-scrollbar-thumb{
+  background:#cbd5f5;
+  border-radius:10px;
+}
+
+
+
+
+
+
+.logo-text{
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:.5px;
+
+  color:var(--primary);
+
+  text-align:center;
+  line-height:1.2;
+}
+
+.
+.menu-indicator:hover{
+  background:#1d4ed8;
+}
+
+.sidebar.open + .menu-indicator{
+  background: rgba(37, 99, 235, 0.9);
+}
+
+
+
+
+.btn-voltar{
+  width:36px;
+  height:36px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:10px;
+
+  background:var(--primary-soft);
+  color:var(--primary);
+
+  font-size:18px;
+  font-weight:800;
+
+  cursor:pointer;
+  transition:.2s;
+}
+
+.btn-voltar:hover{
+  background:var(--primary);
+  color:#fff;
+}
+
+.menu-mobile-btn{
+  width:40px;
+  height:40px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:10px;
+
+  background:#ffffff;
+  color:#000;
+
+  font-size:22px;
+
+  cursor:pointer;
+  transition:.2s;
+
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
+}
+
+.menu-mobile-btn:hover{
+  transform:scale(1.05);
+  background:#f1f5f9;
+}
+
+.overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  background:rgba(0,0,0,.35);
+  backdrop-filter:blur(3px);
+
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+
+  z-index:55;
+}
+
+.overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="nav-hover-zone"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo-area">
+      <div class="logo-text">
+        MERCATTO DELÍCIA
+      </div>
+    </div>
+
+<div class="menu">
+
+  <!-- DASHBOARD -->
+  <div class="menu-item" onclick="openPage('inicio/dashboard.html')" data-page="inicio/dashboard.html">
+    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/dashboard-line.svg">
+    Dashboard
+  </div>
+
+     
+  <!-- Operacional -->
+  <div class="menu-item" onclick="toggleSub('sub_encontrar')">
+    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/settings-3-line.svg">
+    Operacional
+  </div>
+
+  <div class="submenu" id="sub_encontrar">
+
+
+
+
+    
+    <a onclick="openPage('restaurante/administracao/requisicoesrecebidas.html')" data-page="buscar.html">Requisições de mercadorias</a>
+
+
+
+
+
+    
+    <a onclick="openPage('ferramentas/apresentacoes/links.html')" data-page="ferramentas/apresentacoes/links.html">Links</a>
+    <a onclick="openPage('ferramentas/producao/analisedepercas.html')" data-page="ferramentas/apresentacoes/links.html">Trocas</a>
+    <a onclick="openPage('ferramentas/producao/analisebuffet.html')" data-page="ferramentas/producao/analisebuffet.html">Buffet</a>
+  </div>
+
+  <!-- WHATSAPP -->
+  <div class="menu-item" onclick="openPage('otto/whatsapp.html')" data-page="otto/whatsapp.html">
+    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/Logos/whatsapp-line.svg">
+    WhatsApp
+  </div>
+
+  <!-- FICHA TECNICA -->
+  <div class="menu-item" onclick="toggleSub('sub_ficha')">
+    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/Document/book-open-line.svg">
+    Ficha técnica
+  </div>
+
+  <div class="submenu" id="sub_ficha">
+    <a onclick="openPage('restaurante/fichas.html')" data-page="restaurante/fichas.html">Fichas</a>
+    <a onclick="openPage('relatórios/caderno.html')" data-page="relatórios/caderno.html">Livro de receitas</a>
+    <a onclick="openPage('relatórios/historico.html')" data-page="relatórios/historico.html">Histórico</a>
+    <a onclick="openPage('restaurante/relatorios/homerelatorios.html')" data-page="restaurante/relatorios/homerelatorios.html">Relatórios</a>
+
+  </div>
+
+
+  <!-- RESTAURANTE -->
+<div class="menu-item" onclick="toggleSub('sub_monitorar')">
+  <i class="ri-restaurant-line"></i>
+  Restaurante
+</div>
+
+  <div class="submenu" id="sub_monitorar">
+    <a onclick="openPage('restaurante/administrativo/agendas/reservas.html')" data-page="buscar.html">Reservas de mesas</a>
+
+
+
+    
+    <a onclick="openPage('restaurante/agendacantores.html')" data-page="restaurante/agendacantores.html">Agenda de cantores</a>
+    <a onclick="openPage('restaurante/administracao/cardapiodigital/config.html')" data-page="restaurante/administracao/cardapiodigital/config.html">Mídias do Carápio</a>
+    <a onclick="openPage('restaurante/administracao/aprendizadobot.html')" data-page="restaurante/administracao/aprendizadobot.html">Aprendizado OTTO</a>
+    
+  </div>
+
+  <!-- AGENTE -->
+<div class="menu-item" onclick="openPage('otto/agente.html')" data-page="otto/agente.html">
+  <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/Device/cpu-line.svg">
+  Agente de IA
+</div>
+     
+  <!-- APP / SISTEMA -->
+  <div class="menu-item" onclick="openPage('ferramentas/aplicativos.html')" data-page="ferramentas/aplicativos.html">
+    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/apps-2-line.svg">
+    Aplicativos
+  </div>
+     
+  <!-- CONFIG -->
+  <div class="menu-item" onclick="openPage('sistema/configuracoes.html')" data-page="sistema/configuracoes.html">
+    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/settings-4-line.svg">
+    Configurações
+  </div>
+
+</div>
+  </div>
+
+<div class="overlay" onclick="toggleMobileMenu()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+<div class="header">
+
+  <div style="display:flex;align-items:center;gap:10px">
+
+    <!-- MENU (AGORA PRIMEIRO) -->
+<div class="menu-mobile-btn" onclick="toggleMobileMenu()">
+  <i class="ri-arrow-right-line"></i>
+</div>
+
+    <!-- VOLTAR
+    <div class="btn-voltar" onclick="voltarPagina()">
+      ←
+    </div>
+-->
+  </div>
+
+  <div class="user-area">
+    <span id="userMail"></span>
+    <span class="logout" onclick="logout()">SAIR</span>
+  </div>
+
+</div>
+
+<iframe id="frame" src="inicio/dashboard.html"></iframe>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabaseClient=supabase.createClient(
+"https://mblvyircwsaxaslklzky.supabase.co",
+"sb_publishable_oN2CuBzXHaUF7NHYS_M7aw_tBqVeD-x"
+);
+
+function toggleSub(id){
+const el=document.getElementById(id);
+el.style.display=el.style.display==="block"?"none":"block";
+}
+
+function toggleMobileMenu(){
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.querySelector(".overlay");
+
+  sidebar.classList.toggle("open");
+  overlay.classList.toggle("active");
+
+  localStorage.setItem("menuAberto", sidebar.classList.contains("open"));
+}
+
+
+function openPage(page){
+  document.getElementById("frame").src = page;
+
+  localStorage.setItem("paginaAtual", page);
+
+  highlightMenu(page);
+
+  // 🔥 FECHA SEMPRE (desktop + mobile)
+  document.querySelector(".sidebar").classList.remove("open");
+  document.querySelector(".overlay").classList.remove("active");
+}
+
+function highlightMenu(page){
+document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
+document.querySelectorAll(".submenu a").forEach(i=>i.classList.remove("active-sub"));
+const sub=document.querySelector(`a[data-page="${page}"]`);
+if(sub){
+sub.classList.add("active-sub");
+sub.closest(".submenu").previousElementSibling.classList.add("active");
+sub.closest(".submenu").style.display="block";
+}
+}
+
+function logout(){
+localStorage.removeItem("usuarioEmail");
+location.href="login.html";
+}
+
+window.onload = function(){
+
+  const paginaSalva = localStorage.getItem("paginaAtual");
+
+  if(paginaSalva){
+    document.getElementById("frame").src = paginaSalva;
+    highlightMenu(paginaSalva);
+  }
+
+}
+
+
+function voltarPagina(){
+  const frame = document.getElementById("frame");
+  frame.contentWindow.history.back();
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+    .then(() => console.log("SW registrado"))
+    .catch(err => console.log("Erro SW", err));
+}
+</script>
+</body>
+</html>

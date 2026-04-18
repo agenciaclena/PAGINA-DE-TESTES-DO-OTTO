@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>Auditoria de Reservas • Mercatto</title>
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Inter;
+background:#f3f4f6;
+}
+
+.header{
+background:white;
+padding:18px;
+font-size:20px;
+font-weight:800;
+border-bottom:1px solid #e5e7eb;
+}
+
+.container{
+padding:20px;
+display:grid;
+gap:14px;
+}
+
+.card{
+background:white;
+padding:18px;
+border-radius:12px;
+border:1px solid #e5e7eb;
+display:grid;
+gap:8px;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+}
+
+.nome{
+font-weight:700;
+}
+
+.badge{
+font-size:12px;
+font-weight:700;
+padding:4px 10px;
+border-radius:999px;
+}
+
+.INSERT{background:#dcfce7;color:#166534}
+.UPDATE{background:#e0f2fe;color:#075985}
+.excluir{background:#fee2e2;color:#991b1b}
+
+.row{
+display:flex;
+justify-content:space-between;
+font-size:14px;
+}
+
+.actions{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+button{
+flex:1;
+padding:10px;
+border:none;
+border-radius:8px;
+font-weight:700;
+cursor:pointer;
+}
+
+.ver{background:#0284c7;color:white}
+.restaurar{background:#16a34a;color:white}
+
+.popup{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:rgba(0,0,0,.6);
+display:none;
+align-items:center;
+justify-content:center;
+padding:20px;
+}
+
+.modal{
+background:white;
+padding:20px;
+border-radius:12px;
+max-width:900px;
+width:100%;
+max-height:80vh;
+overflow:auto;
+display:grid;
+gap:16px;
+}
+
+.json{
+background:#111827;
+color:#e5e7eb;
+padding:12px;
+border-radius:10px;
+font-size:12px;
+overflow:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+Auditoria de Reservas • Mercatto
+</div>
+
+<div class="container" id="lista"></div>
+
+<div class="popup" id="popup">
+
+<div class="modal">
+
+<div style="display:flex;justify-content:space-between">
+<b>Alteração da Reserva</b>
+<span style="cursor:pointer" onclick="fechar()">✕</span>
+</div>
+
+<div id="detalhes"></div>
+
+<button class="restaurar" onclick="restaurar()">Restaurar Reserva</button>
+
+</div>
+
+</div>
+
+<script>
+
+const client = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+let historico=[]
+let atual=null
+
+function lerDados(item){
+
+let dados=item.dados
+
+if(typeof dados==="string"){
+
+try{
+dados=JSON.parse(dados)
+}catch{
+dados={}
+}
+
+}
+
+if(item.acao==="UPDATE"){
+
+return dados.depois || {}
+
+}
+
+return dados
+
+}
+
+async function carregar(){
+
+const {data,error}=await client
+.from("hist_reservas_mercatto")
+.select("*")
+.order("created_at",{ascending:false})
+
+if(error){
+alert(error.message)
+return
+}
+
+historico=data
+
+render()
+
+}
+
+function render(){
+
+const container=document.getElementById("lista")
+
+container.innerHTML=""
+
+historico.forEach(item=>{
+
+const dados=lerDados(item)
+
+const card=document.createElement("div")
+
+card.className="card"
+
+card.innerHTML=`
+
+<div class="top">
+
+<div class="nome">
+${dados.nome || "Reserva"}
+</div>
+
+<div class="badge ${item.acao}">
+${item.acao}
+</div>
+
+</div>
+
+<div class="row">
+<span>Telefone</span>
+<span>${dados.telefone || "-"}</span>
+</div>
+
+<div class="row">
+<span>Mesa</span>
+<span>${dados.mesa || "-"}</span>
+</div>
+
+<div class="row">
+<span>Pessoas</span>
+<span>${dados.pessoas || "-"}</span>
+</div>
+
+<div class="row">
+<span>Data Reserva</span>
+<span>${dados.datahora ? new Date(dados.datahora).toLocaleString() : "-"}</span>
+</div>
+
+<div class="row">
+<span>Status</span>
+<span>${dados.status || "-"}</span>
+</div>
+
+<div class="row">
+<span>Alterado em</span>
+<span>${item.created_at ? new Date(item.created_at).toLocaleString() : "-"}</span>
+</div>
+
+<div class="actions">
+
+<button class="ver">Ver alteração</button>
+
+<button class="restaurar">Restaurar</button>
+
+</div>
+
+`
+
+card.querySelector(".ver").onclick=()=>abrir(item)
+card.querySelector(".restaurar").onclick=()=>restaurarDireto(item)
+
+container.appendChild(card)
+
+})
+
+}
+
+function abrir(item){
+
+atual=item
+
+document.getElementById("popup").style.display="flex"
+
+let dados=item.dados
+
+if(typeof dados==="string"){
+
+try{
+dados=JSON.parse(dados)
+}catch{
+dados={}
+}
+
+}
+
+const antes=dados.antes || {}
+const depois=dados.depois || dados
+
+document.getElementById("detalhes").innerHTML=`
+
+<div>
+<b>ANTES</b>
+<pre class="json">${JSON.stringify(antes,null,2)}</pre>
+</div>
+
+<div>
+<b>DEPOIS</b>
+<pre class="json">${JSON.stringify(depois,null,2)}</pre>
+</div>
+
+`
+
+}
+
+function fechar(){
+document.getElementById("popup").style.display="none"
+}
+
+async function restaurar(){
+
+if(!atual)return
+
+restaurarDireto(atual)
+
+}
+
+async function restaurarDireto(item){
+
+let dados=item.dados
+
+if(typeof dados==="string"){
+
+try{
+dados=JSON.parse(dados)
+}catch{
+dados={}
+}
+
+}
+
+const registro=dados.antes || dados
+
+const {error}=await client
+.from("reservas_mercatto")
+.upsert(registro)
+
+if(error){
+
+alert(error.message)
+return
+
+}
+
+alert("Reserva restaurada!")
+
+fechar()
+
+carregar()
+
+}
+
+carregar()
+
+</script>
+
+</body>
+</html>
