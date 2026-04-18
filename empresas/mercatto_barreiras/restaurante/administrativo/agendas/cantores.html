@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Agenda de Músicos</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Great+Vibes&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+
+/* ================= BASE ================= */
+
+:root{
+--gold:#ffd700;
+--bg:#0b0b15;
+--card:#171725;
+--border:rgba(255,255,255,.08);
+--text:#fff;
+--muted:#9ca3af;
+--radius:14px;
+}
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+
+font-family:'Poppins',sans-serif;
+background:linear-gradient(180deg,#050507,#0c0c18);
+color:var(--text);
+
+height:100vh;
+
+display:flex;
+flex-direction:column;
+
+overflow:hidden;
+
+}
+
+/* ================= HEADER ================= */
+
+header{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+padding:14px 16px;
+
+background:rgba(10,10,20,.9);
+
+border-bottom:1px solid var(--border);
+
+}
+
+.title{
+font-family:'Bebas Neue';
+font-size:30px;
+color:var(--gold);
+}
+
+.subtitle{
+font-family:'Great Vibes';
+font-size:18px;
+}
+
+/* ================= CONTENT ================= */
+
+.content{
+flex:1;
+overflow:hidden;
+padding:16px;
+display:flex;
+justify-content:center;
+}
+
+.lista{
+width:100%;
+max-width:1200px;
+display:flex;
+flex-direction:column;
+gap:18px;
+
+overflow-y:auto;
+height:100%;
+padding-right:6px;
+}
+/* ================= GRUPO DIA ================= */
+
+.grupo{
+display:grid;
+grid-template-columns:60px 1fr;
+gap:14px;
+}
+
+.dia{
+font-family:'Bebas Neue';
+font-size:36px;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.dia small{
+font-size:11px;
+color:var(--gold);
+}
+
+/* ================= EVENTOS ================= */
+
+.itens{
+display:flex;
+flex-direction:column;
+gap:10px;
+border-left:2px solid var(--gold);
+padding-left:12px;
+}
+
+.linha{
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:var(--card);
+border:1px solid var(--border);
+padding:18px;
+font-size:18px;
+border-radius:12px;
+cursor:pointer;
+}
+
+.evento{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.foto{
+width:60px;
+height:60px;
+border-radius:50%;
+object-fit:cover;
+border:2px solid var(--gold);
+}
+
+.texto{
+font-weight:600;
+font-size:20px;
+}
+
+.estilo{
+font-size:15px;
+color:var(--gold);
+}
+
+.hora{
+font-size:16px;
+font-weight:600;
+color:var(--muted);
+}
+
+/* ================= BOTÃO + ================= */
+
+#addBtn{
+
+position:fixed;
+
+bottom:20px;
+right:20px;
+
+width:56px;
+height:56px;
+
+border-radius:50%;
+
+border:none;
+
+background:var(--gold);
+
+font-size:30px;
+
+cursor:pointer;
+
+}
+
+/* ================= MODAL ================= */
+
+.modal{
+
+position:fixed;
+inset:0;
+
+display:none;
+
+align-items:flex-end;
+justify-content:center;
+
+background:rgba(0,0,0,.7);
+
+padding:0;
+
+animation:fade .25s;
+
+}
+
+@keyframes fade{
+from{opacity:0}
+to{opacity:1}
+}
+
+.modal-box{
+
+background:linear-gradient(180deg,#111324,#0c0d1c);
+
+padding:22px;
+
+border-radius:22px 22px 0 0;
+
+width:100%;
+max-width:420px;
+
+max-height:90vh;
+
+overflow-y:auto;
+
+box-shadow:0 -20px 60px rgba(0,0,0,.6);
+
+border-top:1px solid rgba(255,255,255,.06);
+
+animation:modalUp .25s ease;
+
+}
+
+@keyframes modalUp{
+from{transform:translateY(40px);opacity:.6}
+to{transform:translateY(0);opacity:1}
+}
+
+.modal-box h3{
+
+margin-bottom:14px;
+
+font-size:18px;
+
+font-weight:600;
+
+letter-spacing:.5px;
+
+color:var(--gold);
+
+}
+.modal-box label{
+
+display:block;
+
+margin-top:14px;
+
+font-size:11px;
+
+letter-spacing:.5px;
+
+color:#9ca3af;
+
+text-transform:uppercase;
+
+}
+
+.modal-box input{
+
+width:100%;
+
+padding:14px;
+
+margin-top:6px;
+
+border-radius:10px;
+
+border:1px solid rgba(255,255,255,.12);
+
+font-size:16px;
+
+background:#1b1c2e;
+
+color:#fff;
+
+outline:none;
+
+transition:.2s;
+
+}
+
+.modal-box input:focus{
+
+border-color:var(--gold);
+
+box-shadow:0 0 0 2px rgba(255,215,0,.2);
+
+}
+
+.modal-box button{
+
+margin-top:12px;
+
+width:100%;
+
+padding:12px;
+
+border:none;
+
+border-radius:10px;
+
+font-weight:600;
+
+}
+
+/* ================= LOGIN ================= */
+
+#loginBox{
+
+background:white;
+color:black;
+
+padding:20px;
+
+border-radius:14px;
+
+display:flex;
+flex-direction:column;
+gap:10px;
+
+width:100%;
+max-width:320px;
+
+}
+.form-grid{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:10px;
+
+}
+
+.actions{
+display:flex;
+gap:10px;
+margin-top:18px;
+}
+
+.actions button{
+flex:1;
+padding:14px;
+border:none;
+border-radius:12px;
+font-weight:600;
+cursor:pointer;
+}
+
+.btn-save{
+background:var(--gold);
+color:#000;
+}
+
+.btn-delete{
+background:#e11d48;
+color:#fff;
+}
+
+.btn-cancel{
+background:#2b2d3f;
+color:#fff;
+}
+
+.lista::-webkit-scrollbar{
+width:6px;
+}
+
+.lista::-webkit-scrollbar-track{
+background:transparent;
+}
+
+.lista::-webkit-scrollbar-thumb{
+background:rgba(255,215,0,.5);
+border-radius:10px;
+}
+
+/* ================= LOADING OVERLAY ================= */
+
+.loading{
+
+position:fixed;
+
+inset:0;
+
+background:rgba(0,0,0,.75);
+
+display:none;
+
+align-items:center;
+
+justify-content:center;
+
+z-index:9999;
+
+backdrop-filter:blur(3px);
+
+}
+
+.loading-box{
+
+background:#111324;
+
+padding:26px;
+
+border-radius:14px;
+
+border:1px solid rgba(255,255,255,.1);
+
+text-align:center;
+
+font-size:14px;
+
+}
+
+.spinner{
+
+width:36px;
+height:36px;
+
+border:3px solid rgba(255,255,255,.2);
+border-top:3px solid var(--gold);
+
+border-radius:50%;
+
+margin:auto;
+margin-bottom:10px;
+
+animation:spin 1s linear infinite;
+
+}
+
+@keyframes spin{
+to{transform:rotate(360deg)}
+}
+
+
+.linha{
+min-height:80px;
+}
+
+.evento{
+gap:16px;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div>
+
+<div class="title">Agenda</div>
+<div class="subtitle" id="empresaNome"></div>
+
+</div>
+
+<button id="calendarBtn">📅</button>
+
+</header>
+
+<div class="content">
+<div class="lista" id="lista"></div>
+</div>
+
+<button id="addBtn">+</button>
+
+
+<!-- FORM -->
+
+<div class="modal" id="formModal">
+
+<div class="modal-box">
+
+<h3 id="formTitle">Registro</h3>
+
+<div class="form-grid">
+
+<div>
+<label>Data</label>
+<input type="date" id="f_data">
+</div>
+
+<div>
+<label>Hora</label>
+<input type="time" id="f_hora">
+</div>
+
+</div>
+
+<label>Cantor</label>
+<input type="text" id="f_cantor">
+
+<label>Estilo</label>
+<input type="text" id="f_estilo">
+
+
+<label>Valor do Couvert (R$ 12,00)</label>
+<input type="number" id="f_valor">
+
+<label>Foto</label>
+<input type="file" id="f_foto">
+
+<img id="previewFoto" style="
+width:70px;
+height:70px;
+border-radius:50%;
+margin-top:8px;
+object-fit:cover;
+border:2px solid var(--gold);
+display:none;
+">
+<div class="actions">
+
+<button class="btn-save" onclick="salvarRegistro()">Salvar</button>
+
+<button class="btn-delete" onclick="deleteRegistro()" id="deleteBtn">Excluir</button>
+
+<button class="btn-cancel" onclick="fecharForm()">Cancelar</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+
+/* SUPABASE */
+
+const sb = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+/* EMPRESAS */
+
+let EMPRESA = "Mercatto Delícia"
+let EDITANDO=null
+
+let dataInicio=null
+let dataFim=null
+
+/* CALENDARIO */
+
+flatpickr("#calendarBtn",{
+
+mode:"range",
+
+dateFormat:"Y-m-d",
+
+onClose:(dates)=>{
+
+if(dates.length===2){
+
+dataInicio=dates[0]
+dataFim=dates[1]
+
+carregarAgenda()
+
+}
+
+}
+
+})
+
+/* LOGIN */
+
+function verificarLogin(){
+
+EMPRESA = "Mercatto Delícia"
+
+empresaNome.textContent = EMPRESA
+
+loginModal.style.display = "none"
+
+definirPeriodoPadrao()
+carregarAgenda()
+
+}
+
+function login(){
+
+const s=senha.value
+
+if(SENHAS[s]){
+
+EMPRESA=SENHAS[s]
+
+localStorage.setItem("empresa",EMPRESA)
+
+empresaNome.textContent=EMPRESA
+
+loginModal.style.display="none"
+
+definirPeriodoPadrao()
+carregarAgenda()
+
+}else{
+
+loginMsg.textContent="Senha incorreta"
+
+}
+
+}
+
+/* PERIODO PADRAO */
+
+function definirPeriodoPadrao(){
+
+const hoje=new Date()
+
+dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())
+
+dataFim = null // sem limite
+
+}
+
+/* CARREGAR */
+
+async function carregarAgenda(){
+
+lista.innerHTML=""
+
+let {data}=await sb
+.from("agenda_musicos")
+.select("*")
+.eq("empresa",EMPRESA)
+.gte("data", dataInicio.toISOString().split("T")[0])
+.order("data")
+
+const grupos={}
+
+data.forEach(ev=>{
+
+const d = new Date(ev.data + "T00:00")
+  
+if(
+   d >= dataInicio &&
+   (dataFim === null || d <= dataFim)
+){
+if(!grupos[ev.data])grupos[ev.data]=[]
+
+grupos[ev.data].push(ev)
+
+}
+
+})
+
+Object.keys(grupos).forEach(dataStr=>{
+
+const dataObj = new Date(dataStr + "T00:00")
+
+const itens=grupos[dataStr].map(ev=>`
+<div class="linha" onclick="editar('${ev.id}')">
+
+<div class="evento">
+
+<img class="foto" src="${ev.foto||''}">
+
+<div>
+
+<div class="texto">${ev.cantor}</div>
+<div class="estilo">${ev.estilo||''}</div>
+
+</div>
+
+</div>
+
+<div class="hora">${ev.hora}</div>
+
+</div>
+
+`).join("")
+
+lista.innerHTML+=`
+
+<div class="grupo">
+
+<div class="dia">
+
+${dataObj.getDate()}
+<small>${dataObj.toLocaleString('pt-BR',{month:'short'})}</small>
+
+</div>
+
+<div class="itens">${itens}</div>
+
+</div>
+
+`
+
+})
+
+}
+
+/* EDITAR */
+
+async function editar(id){
+
+const {data}=await sb
+.from("agenda_musicos")
+.select("*")
+.eq("id",id)
+.single()
+
+EDITANDO=data
+
+formModal.style.display="flex"
+
+f_data.value=data.data
+f_cantor.value=data.cantor
+f_estilo.value=data.estilo
+f_hora.value=data.hora
+f_valor.value=data.valor
+
+}
+
+/* UPLOAD FOTO */
+
+async function uploadFoto(file){
+
+const nome=Date.now()+"_"+file.name
+
+await sb.storage
+.from("agenda-musicos")
+.upload(nome,file)
+
+const {data}=sb.storage
+.from("agenda-musicos")
+.getPublicUrl(nome)
+
+return data.publicUrl
+
+}
+
+/* SALVAR */
+
+async function salvarRegistro(){
+
+showLoading("Salvando...")
+
+try{
+let fotoURL=EDITANDO?.foto||null
+
+const file=f_foto.files[0]
+
+if(file){
+
+fotoURL=await uploadFoto(file)
+
+}
+
+const dados={
+
+empresa:EMPRESA,
+data: f_data.value || null,
+cantor:f_cantor.value,
+estilo:f_estilo.value,
+hora:f_hora.value,
+valor: f_valor.value ? Number(f_valor.value) : null,
+foto:fotoURL
+
+}
+
+if(EDITANDO){
+
+await sb
+.from("agenda_musicos")
+.update(dados)
+.eq("id",EDITANDO.id)
+
+}else{
+
+await sb
+.from("agenda_musicos")
+.insert([dados])
+
+}
+
+fecharForm()
+carregarAgenda()
+
+}finally{
+
+hideLoading()
+
+}
+}
+
+/* DELETE */
+
+async function deleteRegistro(){
+
+showLoading("Excluindo...")
+
+try{
+if(!EDITANDO)return
+
+if(!confirm("Excluir registro?"))return
+
+await sb
+.from("agenda_musicos")
+.delete()
+.eq("id",EDITANDO.id)
+
+fecharForm()
+carregarAgenda()
+
+}finally{
+
+hideLoading()
+
+}
+
+}
+
+/* FORM */
+
+addBtn.onclick=()=>{
+
+EDITANDO=null
+
+formModal.style.display="flex"
+
+f_data.value=""
+f_cantor.value=""
+f_estilo.value=""
+f_hora.value=""
+f_valor.value=""
+
+}
+
+function fecharForm(){
+formModal.style.display="none"
+}
+
+/* INIT */
+
+verificarLogin()
+f_foto.addEventListener("change", e => {
+
+const file = e.target.files[0]
+
+if(!file) return
+
+const img = document.getElementById("previewFoto")
+
+img.src = URL.createObjectURL(file)
+
+img.style.display="block"
+
+})
+
+function showLoading(text="Processando..."){
+
+loading.style.display="flex"
+
+loadingText.innerText=text
+
+document.querySelectorAll(".actions button").forEach(btn=>{
+btn.disabled = true
+})
+
+}
+
+function hideLoading(){
+
+loading.style.display="none"
+
+document.querySelectorAll(".actions button").forEach(btn=>{
+btn.disabled = false
+})
+
+}
+</script>
+<div class="loading" id="loading">
+
+<div class="loading-box">
+
+<div class="spinner"></div>
+
+<div id="loadingText">Processando...</div>
+
+</div>
+
+</div>
+</body>
+</html>

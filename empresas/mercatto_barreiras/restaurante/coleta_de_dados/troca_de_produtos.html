@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>Registro de produtos para troca</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+/* ===== BASE ===== */
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Inter;
+background:#f8fafc;
+color:#0f172a;
+display:flex;
+height:100vh;
+overflow:hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+width:280px;
+background:#ffffff;
+padding:20px;
+overflow:auto;
+border-right:1px solid #e2e8f0;
+}
+
+.sidebar h2{
+margin-bottom:20px;
+font-size:18px;
+}
+
+/* DIA */
+.dia{
+padding:14px;
+border-radius:12px;
+background:#f1f5f9;
+margin-bottom:10px;
+cursor:pointer;
+transition:.2s;
+font-weight:600;
+}
+
+.dia:hover{
+background:#e2e8f0;
+}
+
+.dia.ativo{
+background:#2563eb;
+color:#fff;
+}
+
+/* ===== MAIN ===== */
+.main{
+flex:1;
+padding:24px;
+overflow:auto;
+}
+
+/* HEADER */
+.header{
+font-size:24px;
+font-weight:800;
+margin-bottom:20px;
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+gap:18px;
+}
+
+/* CARD FOTO */
+.card{
+background:#ffffff;
+border-radius:16px;
+padding:10px;
+box-shadow:0 8px 25px rgba(0,0,0,.06);
+transition:.2s;
+}
+
+.card:hover{
+transform:translateY(-4px);
+}
+
+/* IMG */
+.card img{
+width:100%;
+aspect-ratio:1/1;
+object-fit:cover;
+border-radius:12px;
+cursor:pointer;
+}
+
+/* OBS */
+.obs{
+font-size:13px;
+margin-top:6px;
+color:#475569;
+}
+
+/* VIEWER */
+.viewer{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.9);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+.viewer img{
+max-width:85%;
+max-height:85%;
+border-radius:12px;
+}
+
+.close{
+position:absolute;
+top:20px;
+right:30px;
+font-size:24px;
+color:#fff;
+cursor:pointer;
+}
+
+/* EMPTY */
+.empty{
+color:#64748b;
+font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+<h2>📅 Dias</h2>
+
+<div id="listaDias"></div>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="header" id="titulo">Selecione um dia</div>
+
+<div id="conteudo" class="grid"></div>
+
+</div>
+
+<!-- VIEWER -->
+<div class="viewer" id="viewer">
+<div class="close" onclick="fechar()">✕</div>
+<img id="img">
+</div>
+
+<script>
+
+const sb = window.supabase.createClient(
+  "https://ehxrrpsiksceljmhsfxk.supabase.co",
+  "sb_publishable_Jm2ZQKzPS3gNPCKSjFAmYQ_WNMYwF1j"
+)
+
+let diaAtivo = null
+
+/* FORMATAR */
+function formatar(d){
+return d.split("-").reverse().join("/")
+}
+
+/* CARREGAR DIAS */
+async function carregarDias(){
+
+const { data } = await sb.from("percas").select("data")
+
+const dias = [...new Set(data.map(d=>d.data))]
+
+const lista = document.getElementById("listaDias")
+lista.innerHTML=""
+
+dias.sort().reverse().forEach(d=>{
+
+const el = document.createElement("div")
+el.className="dia"
+el.innerText=formatar(d)
+
+el.onclick=()=>{
+diaAtivo = d
+marcarSelecionado()
+abrirDia(d)
+}
+
+lista.appendChild(el)
+
+})
+
+}
+
+/* MARCAR ATIVO */
+function marcarSelecionado(){
+
+document.querySelectorAll(".dia").forEach(el=>{
+el.classList.remove("ativo")
+})
+
+const items = document.querySelectorAll(".dia")
+
+items.forEach(el=>{
+if(el.innerText === formatar(diaAtivo)){
+el.classList.add("ativo")
+}
+})
+
+}
+
+/* ABRIR DIA */
+async function abrirDia(dia){
+
+document.getElementById("titulo").innerText = "📸 " + formatar(dia)
+
+const { data } = await sb
+.from("percas")
+.select("*")
+.eq("data",dia)
+.order("created_at",{ascending:false})
+
+const conteudo = document.getElementById("conteudo")
+conteudo.innerHTML=""
+
+if(data.length===0){
+conteudo.innerHTML='<div class="empty">Sem registros</div>'
+return
+}
+
+data.forEach(item=>{
+
+const div = document.createElement("div")
+div.className="card"
+
+div.innerHTML = `
+<img src="${item.foto_url}" onclick="ver('${item.foto_url}')">
+<div class="obs">${item.observacao || ""}</div>
+`
+
+conteudo.appendChild(div)
+
+})
+
+}
+
+/* VIEWER */
+function ver(src){
+document.getElementById("img").src = src
+document.getElementById("viewer").style.display="flex"
+}
+
+function fechar(){
+document.getElementById("viewer").style.display="none"
+}
+
+/* INIT */
+carregarDias()
+
+</script>
+
+</body>
+</html>

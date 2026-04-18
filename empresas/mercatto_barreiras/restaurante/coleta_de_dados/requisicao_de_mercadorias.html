@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Requisição de produtos</title>
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:Inter;
+background:#f1f5f9;
+display:flex;
+justify-content:center;
+}
+
+.container{
+width:100%;
+max-width:500px;
+background:#fff;
+padding:20px;
+border-radius:12px;
+margin:10px;
+}
+
+h1{text-align:center;font-size:20px;margin-bottom:20px;}
+
+label{font-weight:700;font-size:14px;margin-top:10px;display:block;}
+
+input,select,textarea{
+width:100%;
+padding:12px;
+border-radius:8px;
+border:1px solid #d1d5db;
+margin-top:5px;
+}
+
+textarea{height:80px;}
+
+.unidades{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-top:10px;
+}
+
+.unidades button{
+flex:1;
+padding:10px;
+border-radius:20px;
+border:2px solid #3b82f6;
+background:#fff;
+font-weight:700;
+cursor:pointer;
+}
+
+.unidades button.active{
+background:#3b82f6;
+color:#fff;
+}
+
+.btn{
+width:100%;
+padding:14px;
+border:none;
+border-radius:8px;
+font-weight:800;
+margin-top:10px;
+cursor:pointer;
+}
+
+.btn-primary{background:#2f86d6;color:#fff;}
+.btn-danger{background:#ef4444;color:#fff;}
+
+table{
+width:100%;
+margin-top:15px;
+border-collapse:collapse;
+font-size:12px;
+}
+
+th,td{
+border:1px solid #e5e7eb;
+padding:6px;
+text-align:center;
+}
+
+#listaProdutos{
+background:#fff;
+border:1px solid #ddd;
+border-radius:8px;
+margin-top:5px;
+max-height:150px;
+overflow:auto;
+}
+
+.item{
+padding:10px;
+cursor:pointer;
+font-weight:600;
+}
+
+.item:hover{background:#f1f5f9;}
+
+.overlay{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:rgba(0,0,0,0.5);
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+font-size:20px;
+font-weight:800;
+z-index:999;
+display:none;
+}
+
+.hidden{display:none;}
+</style>
+</head>
+
+<body>
+
+<div class="overlay" id="overlay">Enviando...</div>
+
+<div class="container">
+
+<h1>Requisição de produtos</h1>
+
+<!-- LOGIN -->
+<div id="loginArea">
+<label>Usuário</label>
+<input id="usuario">
+
+<label>Senha</label>
+<input id="senha" type="password">
+
+<button class="btn btn-primary" onclick="login()">Entrar</button>
+</div>
+
+<!-- APP -->
+<div id="appArea" class="hidden">
+
+<label>Solicitante</label>
+<input id="solicitante" readonly>
+
+<label>Setor</label>
+<select id="setor" disabled></select>
+
+<label>Produto</label>
+<input id="produto" placeholder="Digite o produto">
+<div id="listaProdutos"></div>
+
+<label>Quantidade</label>
+<input id="quantidade" type="number" min="1" step="1">
+
+<label>Unidade</label>
+<div class="unidades">
+<button onclick="setUnidade('UN')" id="uUN">UN</button>
+<button onclick="setUnidade('KG')" id="uKG">KG</button>
+<button onclick="setUnidade('L')" id="uL">L</button>
+<button onclick="setUnidade('CX')" id="uCX">CX</button>
+<button onclick="setUnidade('PC')" id="uPC">PC</button>
+</div>
+
+<label>Observações</label>
+<textarea id="obs"></textarea>
+
+<button class="btn btn-primary" onclick="enviar()">ENVIAR ITEM</button>
+
+<h3>Últimos pedidos</h3>
+
+<table>
+<thead>
+<tr>
+<th>Produto</th>
+<th>Qtd</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+
+<button class="btn btn-danger" onclick="logout()">Sair</button>
+
+</div>
+
+</div>
+
+<script>
+const sb = supabase.createClient(
+ "https://ehxrrpsiksceljmhsfxk.supabase.co",
+ "sb_publishable_Jm2ZQKzPS3gNPCKSjFAmYQ_WNMYwF1j"
+);
+
+let unidade="UN";
+let usuarioAtual=null;
+let dadosUsuario=null;
+
+/* LOGIN */
+async function login(){
+
+const user = usuario.value.toUpperCase();
+
+const { data, error } = await sb
+.from("usuarios")
+.select("*")
+.eq("nome", user)
+.eq("senha", senha.value)
+.single();
+
+if(error || !data){
+alert("Login inválido");
+return;
+}
+
+localStorage.setItem("user_data", JSON.stringify(data));
+init();
+}
+
+/* VALIDAR SESSÃO */
+async function validarSessao(){
+
+const saved = localStorage.getItem("user_data");
+if(!saved) return false;
+
+const user = JSON.parse(saved);
+
+const { data } = await sb
+.from("usuarios")
+.select("*")
+.eq("id", user.id)
+.single();
+
+if(!data || data.senha !== user.senha){
+logout();
+return false;
+}
+
+dadosUsuario = data;
+return true;
+}
+
+/* INIT */
+async function init(){
+
+loginArea.classList.add("hidden");
+appArea.classList.remove("hidden");
+
+const saved = JSON.parse(localStorage.getItem("user_data"));
+
+usuarioAtual = saved.nome;
+dadosUsuario = saved;
+
+solicitante.value = saved.nome;
+setor.innerHTML = `<option>${saved.setor}</option>`;
+
+setUnidade("UN");
+
+carregarHistorico();
+}
+
+/* AUTO LOGIN */
+window.addEventListener("DOMContentLoaded", async ()=>{
+const ok = await validarSessao();
+if(ok) init();
+});
+
+/* LOGOUT */
+function logout(){
+localStorage.removeItem("user_data");
+location.reload();
+}
+
+/* UNIDADE */
+function setUnidade(u){
+unidade=u;
+document.querySelectorAll(".unidades button").forEach(b=>b.classList.remove("active"));
+document.getElementById("u"+u).classList.add("active");
+}
+
+/* BUSCA */
+produto.onkeyup=async()=>{
+
+const q=produto.value.toUpperCase();
+
+if(q.length<2){
+listaProdutos.innerHTML="";
+return;
+}
+
+const { data } = await sb
+.from("produtos_para_requisicao")
+.select("*")
+.ilike("nome", `%${q}%`)
+.limit(10);
+
+listaProdutos.innerHTML="";
+
+(data||[]).forEach(p=>{
+listaProdutos.innerHTML+=`
+<div class="item" onclick="selectProduto('${p.nome}')">${p.nome}</div>`;
+});
+};
+
+function selectProduto(nome){
+produto.value=nome;
+listaProdutos.innerHTML="";
+}
+
+/* ENVIAR */
+async function enviar(){
+
+if(!produto.value || !quantidade.value){
+alert("Preencha os campos");
+return;
+}
+
+overlay.style.display="flex";
+
+const nome=produto.value.toUpperCase();
+
+/* produto */
+let { data: existente } = await sb
+.from("produtos_para_requisicao")
+.select("*")
+.eq("nome", nome)
+.maybeSingle();
+
+let produto_id;
+
+if(!existente){
+const { data: novo } = await sb
+.from("produtos_para_requisicao")
+.insert({ nome })
+.select()
+.maybeSingle();
+
+produto_id = novo.id;
+}else{
+produto_id = existente.id;
+}
+
+/* requisicao */
+await sb.from("requisicoes").insert({
+produto:nome,
+produto_id,
+quantidade: parseInt(quantidade.value),
+unidade,
+setor:dadosUsuario.setor,
+usuario:usuarioAtual,
+observacoes:obs.value,
+status:"PENDENTE"
+});
+
+overlay.style.display="none";
+
+limparCampos();
+carregarHistorico();
+}
+
+/* HISTÓRICO */
+async function carregarHistorico(){
+
+const { data } = await sb
+.from("requisicoes")
+.select("*")
+.eq("usuario", usuarioAtual)
+.order("created_at",{ascending:false})
+.limit(20);
+
+tabela.innerHTML="";
+
+(data||[]).forEach(r=>{
+tabela.innerHTML+=`
+<tr>
+<td>${r.produto}</td>
+<td>${r.quantidade}</td>
+<td>${r.status}</td>
+</tr>`;
+});
+}
+
+/* LIMPAR */
+function limparCampos(){
+produto.value="";
+quantidade.value="";
+obs.value="";
+}
+</script>
+
+</body>
+</html>

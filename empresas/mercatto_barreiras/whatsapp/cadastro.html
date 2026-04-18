@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Reserva • Grupo DV</title>
+
+<style>
+body{
+    margin:0;
+    background:#f4f5f7;
+    font-family:Arial, sans-serif;
+}
+
+/* HEADER */
+.header{
+    background:white;
+    padding:16px 18px;
+    font-size:20px;
+    font-weight:700;
+    border-bottom:1px solid #ddd;
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.voltar{
+    font-size:24px;
+    cursor:pointer;
+}
+
+/* FORM */
+.form{
+    padding:20px;
+}
+
+.label{
+    font-weight:700;
+    margin-top:14px;
+    margin-bottom:4px;
+}
+
+.input{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    font-size:16px;
+    margin-bottom:10px;
+}
+
+.btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    font-size:17px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.btn-salvar{ background:#28a745; color:white; }
+.btn-excluir{ background:#dc3545; color:white; }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <span class="voltar" onclick="voltar()">←</span>
+    <span id="tituloData"></span>
+</div>
+
+<div class="form">
+
+    <div class="label">Nome do Cliente</div>
+    <input id="nome" class="input">
+
+    <div class="label">Telefone</div>
+    <input id="telefone" class="input">
+
+    <div class="label">Número de Pessoas</div>
+    <input id="qtd" type="number" class="input">
+
+    <div class="label">Valor (Opcional)</div>
+    <input id="valor" type="number" class="input">
+
+    <div class="label">Status</div>
+    <select id="status" class="input">
+        <option value="pendente">Pendente</option>
+        <option value="andamento">Em Andamento</option>
+        <option value="pago">Pago</option>
+    </select>
+
+    <button class="btn btn-salvar" onclick="salvar()">Salvar</button>
+    <button class="btn btn-excluir" onclick="excluir()">Excluir</button>
+</div>
+
+<script>
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwE-0oOl4wGHz7gFXHIgYHNihCTW4-uzUjGv_iLvPSWX1sma8pi9eJIwx1K4grFOILj/exec";
+
+/* ==============================
+   PEGAR DATA DA URL
+================================ */
+const params = new URLSearchParams(window.location.search);
+const data = params.get("data");
+
+document.getElementById("tituloData").textContent =
+    new Date(data).toLocaleDateString("pt-BR");
+
+/* ==============================
+   CARREGAR RESERVA EXISTENTE
+================================ */
+async function carregar(){
+    const r = await fetch(`${ENDPOINT}?acao=carregar&data=${data}`);
+    const dados = await r.json();
+
+    if(!dados.ok) return;
+
+    document.getElementById("nome").value = dados.nome || "";
+    document.getElementById("telefone").value = dados.telefone || "";
+    document.getElementById("qtd").value = dados.qtd || "";
+    document.getElementById("valor").value = dados.valor || "";
+    document.getElementById("status").value = dados.status || "pendente";
+}
+
+carregar();
+
+/* ==============================
+   SALVAR
+================================ */
+async function salvar(){
+
+    const req = await fetch(ENDPOINT,{
+        method:"POST",
+        body:JSON.stringify({
+            acao:"salvar",
+            data,
+            nome: document.getElementById("nome").value,
+            telefone: document.getElementById("telefone").value,
+            qtd: document.getElementById("qtd").value,
+            valor: document.getElementById("valor").value,
+            status: document.getElementById("status").value
+        })
+    });
+
+    const resp = await req.json();
+
+    if(resp.ok){
+        alert("Salvo com sucesso!");
+        voltar();
+    } else {
+        alert("Erro: "+resp.erro);
+    }
+}
+
+/* ==============================
+   EXCLUIR
+================================ */
+async function excluir(){
+
+    if(!confirm("Deseja realmente excluir esta reserva?")) return;
+
+    const req = await fetch(ENDPOINT,{
+        method:"POST",
+        body:JSON.stringify({
+            acao:"excluir",
+            data
+        })
+    });
+
+    const resp = await req.json();
+
+    if(resp.ok){
+        alert("Excluído com sucesso!");
+        voltar();
+    } else {
+        alert("Erro: "+resp.erro);
+    }
+}
+
+/* ==============================
+   VOLTAR
+================================ */
+function voltar(){
+    window.location.href = "reservas.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Mercatto • WhatsApp</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+/* ===== RESET ===== */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html, body{
+  width:100%;
+  height:100%;
+  font-family:'Inter', sans-serif;
+  background:#e5ddd5;
+  overflow:hidden;
+}
+
+/* ===== FUNDO ESTILO WHATS ===== */
+body::before{
+  content:"MERCATTO";
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:140px;
+  font-weight:800;
+  color:#000;
+  opacity:0.03;
+  pointer-events:none;
+}
+
+/* ===== HEADER ===== */
+.header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  background:linear-gradient(135deg,#075e54,#0b7d6c);
+  color:#fff;
+  font-weight:600;
+  font-size:16px;
+  z-index:20;
+}
+
+.header .title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.header .avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#ffffff33;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+}
+
+/* ===== CHAT ===== */
+.messages{
+position:fixed;
+top:0px;
+bottom:80px;
+left:0;
+right:0;
+overflow:auto;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:10px;
+scroll-behavior:smooth;
+}
+
+/* ===== DATA ===== */
+.date{
+  align-self:center;
+  font-size:11px;
+  background:#ffffffd9;
+  padding:4px 12px;
+  border-radius:20px;
+  color:#555;
+  font-weight:500;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+/* ===== MENSAGENS ===== */
+.msg{
+  max-width:72%;
+  display:flex;
+  flex-direction:column;
+
+  padding:6px 8px 4px 10px;
+  border-radius:12px;
+
+  font-size:14px;
+  line-height:1.4;
+
+  position:relative;
+
+  animation:fadeIn .2s ease;
+}
+
+/* RECEBIDA */
+.user{
+  align-self:flex-start;
+  background:#ffffff;
+  border-top-left-radius:4px;
+}
+
+/* ENVIADA */
+.assistant{
+  align-self:flex-end;
+  background:#dcf8c6;
+  border-top-right-radius:4px;
+}
+
+
+/* ===== TEXTO ===== */
+.msg .texto{
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+/* ===== MIDIA ===== */
+.msg img,
+.msg video{
+  max-width:220px;
+  border-radius:10px;
+  margin-bottom:4px;
+}
+
+.msg audio{
+  width:200px;
+}
+
+/* ===== DOCUMENTO ===== */
+.fileBox{
+  background:#f4f4f4;
+  padding:10px;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+}
+
+/* ===== HORA ===== */
+.time{
+  font-size:10px;
+  opacity:.6;
+
+  align-self:flex-end;
+  margin-top:2px;
+
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+/* ===== INPUT ===== */
+.inputBox{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:8px 10px;
+  background:#ffffff;
+
+  display:flex;
+  align-items:flex-end; /* 🔥 importante */
+  gap:8px;
+
+  border-top:1px solid #eee;
+}
+
+/* container interno (bolha) */
+.inputBox .campo{
+  flex:1;
+  display:flex;
+  align-items:flex-end; /* 🔥 acompanha crescimento */
+  background:#f1f3f4;
+  border-radius:20px;
+  padding:6px 10px;
+  gap:6px;
+}
+
+/* textarea */
+textarea{
+  flex:1;
+  border:none;
+  outline:none;
+  background:transparent;
+  font-size:14px;
+  padding:6px;
+
+  resize:none;
+
+  height:20px;          /* altura inicial */
+  max-height:100px;     /* ~5 linhas */
+  overflow-y:auto;      /* scroll depois de 5 linhas */
+  line-height:20px;
+}
+
+/* botões pequenos (ícones) */
+.iconBtn{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:none;
+  background:transparent;
+  font-size:16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* hover leve */
+.iconBtn:hover{
+  background:#e5e7eb;
+}
+
+/* botão enviar */
+.sendBtn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:none;
+  background:#25d366;
+  color:#fff;
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.sendBtn:hover{
+  transform:scale(1.05);
+}
+
+/* ===== PREVIEW ===== */
+.preview{
+  position:fixed;
+  bottom:90px;
+  left:10px;
+  right:10px;
+  max-width:95%;
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  z-index:50;
+}
+
+/* ===== BOTÃO SCROLL ===== */
+.scrollBtn{
+  position:fixed;
+  right:20px;
+  bottom:100px;
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  background:#075e54;
+  color:#fff;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  cursor:pointer;
+  z-index:30;
+  box-shadow:0 6px 20px rgba(0,0,0,.3);
+}
+
+/* ===== MENU TEMPLATE ===== */
+#menuTemplates{
+  position:fixed;
+  bottom:90px;
+  left:10px;
+  right:10px;
+  max-width:300px;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  display:none;
+  flex-direction:column;
+  padding:10px;
+  gap:6px;
+  z-index:50;
+}
+
+#menuTemplates button{
+  width:100%;
+  border-radius:8px;
+  background:#f4f4f4;
+  color:#333;
+}
+
+/* ===== ANIMAÇÃO ===== */
+@keyframes fadeIn{
+  from{
+    opacity:0;
+    transform:translateY(5px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* ===== SCROLL BONITO ===== */
+.messages::-webkit-scrollbar{
+  width:6px;
+}
+
+.messages::-webkit-scrollbar-thumb{
+  background:#ccc;
+  border-radius:10px;
+}
+
+.avatar{
+width:38px;
+height:38px;
+border-radius:50%;
+background:linear-gradient(135deg,#25d366,#128c7e);
+color:#fff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:700;
+font-size:14px;
+text-transform:uppercase;
+}
+.messages{
+  gap:6px;
+}
+
+
+
+  
+</style>
+
+<script>
+document.addEventListener('gesturestart', function (e) {
+  e.preventDefault();
+});
+document.addEventListener('gesturechange', function (e) {
+  e.preventDefault();
+});
+document.addEventListener('gestureend', function (e) {
+  e.preventDefault();
+});
+</script>
+
+</head>
+
+<body>
+
+
+<div id="msgs" class="messages"></div>
+
+<div id="scrollBtn" class="scrollBtn" onclick="scrollBottom()">↓</div>
+
+<div class="inputBox">
+
+<input type="file" id="fileInput" hidden>
+
+<div class="campo">
+
+  <button class="iconBtn" onclick="fileInput.click()">📎</button>
+  <button class="iconBtn" onclick="abrirGaleria()">🖼️</button>
+  <button class="iconBtn" onclick="abrirTemplates()">📩</button>
+
+  <textarea id="msg" placeholder="Mensagem..."></textarea>
+
+</div>
+
+<button class="sendBtn" onclick="enviar()">➤</button>
+
+</div>
+
+<div id="preview" class="preview" style="display:none"></div>
+
+
+<div id="menuTemplates" style="
+position:fixed;
+bottom:90px;
+left:10px;
+right:10px;
+max-width:300px;
+background:#fff;
+border-radius:10px;
+box-shadow:0 10px 30px rgba(0,0,0,.2);
+display:none;
+flex-direction:column;
+padding:10px;
+gap:5px;
+z-index:999;
+">
+
+<button onclick="enviarTemplate('confirmao_de_reserva')">Reserva</button>
+<button onclick="enviarTemplate('reserva_especial')">Sala VIP</button>
+<button onclick="abrirDisparoMassa()">📢 Disparo em Massa</button>
+</div>
+
+<div id="galeria" style="
+position:fixed;
+bottom:90px;
+left:10px;
+right:10px;
+max-width:320px;
+background:#fff;
+border-radius:12px;
+box-shadow:0 10px 30px rgba(0,0,0,.2);
+display:none;
+flex-wrap:wrap;
+gap:6px;
+padding:10px;
+z-index:999;
+">
+
+</div>
+
+
+
+  
+<script>
+
+/* ===== SUPABASE ===== */
+const db = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+/* ===== PERMISSÃO DE NOTIFICAÇÃO ===== */
+if ("Notification" in window) {
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission()
+  }
+}
+
+
+
+
+
+
+  
+const imagensGaleria = [
+  {
+    nome: "Vídeo restaurante",
+    url: "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4",
+    tipo: "video"
+  },
+  {
+    nome: "Happy Hour",
+    url: "https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.27.52.jpeg",
+    tipo: "imagem"
+  },
+  {
+    nome: "Rodízio Oriental",
+    url: "https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.03.jpeg",
+    tipo: "imagem"
+  },
+  {
+    nome: "Rodízio Italiano",
+    url: "https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg",
+    tipo: "imagem"
+  }
+]
+
+
+
+
+
+
+  
+/* ===== VARS ===== */
+let telefone = new URLSearchParams(location.search).get("telefone")
+let mensagensIds = new Set()
+let oldestDate = null
+let loading = false
+let canal = null
+let arquivo = null
+let ultimaDataRender = null
+
+
+async function carregarNomeCliente(){
+
+  if(!telefone) return
+
+  const {data} = await db
+    .from("memoria_clientes")
+    .select("nome")
+    .eq("telefone", telefone)
+    .single()
+
+  let nome = data?.nome || telefone
+
+  const el = document.getElementById("nomeCliente")
+
+  if(el){
+    el.innerText = nome
+  }
+
+}
+function gerarAvatar(nome){
+
+  let iniciais = nome
+    .split(" ")
+    .slice(0,2)
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()
+
+  document.getElementById("avatar").innerText = iniciais
+}
+/* ===== TIME ===== */
+function hora(d){
+
+let data
+
+if(d.includes("Z")){
+  data = new Date(d)
+}else{
+  data = new Date(d.replace(" ", "T"))
+}
+
+/* 🔥 CORREÇÃO: REMOVE 3 HORAS */
+data.setHours(data.getHours() - 3)
+
+return new Intl.DateTimeFormat("pt-BR",{
+  hour:"2-digit",
+  minute:"2-digit"
+}).format(data)
+
+}
+  
+function dataLabel(d){
+
+let data
+
+// 🔥 trata os dois formatos (Supabase + local)
+if(d.includes("Z")){
+  data = new Date(d) // UTC
+}else{
+  data = new Date(d.replace(" ", "T")) // banco local
+}
+
+// formatter padrão (comparação)
+const formatter = new Intl.DateTimeFormat("en-CA",{
+  timeZone:"America/Bahia",
+  year:"numeric",
+  month:"2-digit",
+  day:"2-digit"
+})
+
+const hoje = formatter.format(new Date())
+const dataMsg = formatter.format(data)
+
+// HOJE
+if(dataMsg === hoje) return "HOJE"
+
+// ONTEM
+const ontemDate = new Date()
+ontemDate.setDate(ontemDate.getDate()-1)
+
+const ontem = formatter.format(ontemDate)
+
+if(dataMsg === ontem) return "ONTEM"
+
+// PADRÃO (data normal)
+return new Intl.DateTimeFormat("pt-BR",{
+  timeZone:"America/Bahia"
+}).format(data)
+
+}
+/* ===== SCROLL ===== */
+function scrollBottom(){
+  requestAnimationFrame(() => {
+    msgs.scrollTop = msgs.scrollHeight
+  })
+  scrollBtn.style.display="none"
+}
+
+msgs.addEventListener("scroll",()=>{
+if(msgs.scrollTop < msgs.scrollHeight - msgs.clientHeight - 200){
+scrollBtn.style.display="flex"
+}else{
+scrollBtn.style.display="none"
+}
+if(msgs.scrollTop < 50){
+carregarMais()
+}
+})
+
+
+function notificar(m){
+
+  if (!("Notification" in window)) return
+  if (Notification.permission !== "granted") return
+
+  // 🔥 evita notificar mensagem enviada por você
+  if(m.role === "assistant") return
+
+  const n = new Notification("Nova mensagem 💬", {
+    body: m.mensagem || "Nova mídia recebida",
+    icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png"
+  })
+
+  n.onclick = () => {
+    window.focus()
+  }
+
+}
+
+
+
+
+  
+function gerarHTML(m){
+
+let html = ""
+
+/* ===== MIDIA ===== */
+
+if(m?.tipo === "imagem" && m?.media_url){
+html += `<img src="${m.media_url}" onclick="window.open('${m.media_url}')">`
+}
+
+else if(m?.tipo === "video" && m?.media_url){
+html += `
+<video controls style="max-width:220px;border-radius:10px;">
+  <source src="${m.media_url}">
+</video>`
+}
+
+else if(m?.tipo === "audio" && m?.media_url){
+html += `
+<audio controls style="width:200px;">
+  <source src="${m.media_url}">
+</audio>`
+}
+
+else if(m?.tipo === "documento" && m?.media_url){
+
+const ext = (m.nome_arquivo || "").split(".").pop()?.toLowerCase()
+
+if(ext === "pdf"){
+html += `
+<iframe src="${m.media_url}" width="220" height="260"
+style="border:none;border-radius:10px;"></iframe>`
+}else{
+html += `
+<div class="fileBox" onclick="window.open('${m.media_url}')">
+📄 ${m.nome_arquivo || "Abrir arquivo"}
+</div>`
+}
+
+}
+
+/* ===== TEXTO ===== */
+
+if(m?.mensagem){
+html += `<div class="texto">${m.mensagem}</div>`
+}
+
+/* ===== STATUS ===== */
+
+function statusIcon(status){
+if(status === "sent") return "✓"
+if(status === "delivered") return "✓✓"
+if(status === "read") return "<span style='color:#34b7f1;font-weight:600'>✓✓</span>"
+  return ""
+}
+
+/* ===== TIME ===== */
+
+html += `
+<div class="time">
+${hora(m.created_at)} ${statusIcon(m.status)}
+</div>
+`
+
+return html
+}
+
+
+function render(m, top=false){
+
+// 🔥 garante ID sempre válido
+const id = m.id || m.message_id || ("tmp-"+Date.now()+Math.random())
+
+const existente = document.getElementById(id)
+
+if(existente){
+  existente.innerHTML = gerarHTML(m)
+  return
+}
+
+// 🔥 só adiciona se for válido
+mensagensIds.add(id)
+
+const label = dataLabel(m.created_at)
+
+if(label !== ultimaDataRender){
+  const d = document.createElement("div")
+  d.className="date"
+  d.innerText = label
+  top ? msgs.prepend(d) : msgs.appendChild(d)
+  ultimaDataRender = label
+}
+
+const div = document.createElement("div")
+
+div.id = id
+div.className = "msg " + (m.role==="assistant"?"assistant":"user")
+
+div.innerHTML = gerarHTML(m)
+
+top ? msgs.prepend(div) : msgs.appendChild(div)
+}
+
+/* ===== LOAD INICIAL ===== */
+async function iniciar(){
+
+const {data} = await db
+.from("conversas_whatsapp")
+.select("*")
+.eq("telefone",telefone)
+.order("created_at",{ascending:false})
+.limit(20)
+
+if(!data) return
+
+data.reverse().forEach(m=>render(m))
+
+oldestDate = data[0]?.created_at
+
+setTimeout(() => {
+  scrollBottom()
+}, 100)
+realtime()
+carregarNomeCliente()
+}
+
+/* ===== LOAD MAIS ===== */
+async function carregarMais(){
+
+if(loading || !oldestDate) return
+loading = true
+
+const {data} = await db
+.from("conversas_whatsapp")
+.select("*")
+.eq("telefone",telefone)
+.lt("created_at",oldestDate)
+.order("created_at",{ascending:false})
+.limit(20)
+
+if(!data || data.length===0){
+loading=false
+return
+}
+
+oldestDate = new Date(data[0].created_at).toISOString()
+const alturaAntes = msgs.scrollHeight
+
+data.reverse().forEach(m=>render(m,true))
+
+const alturaDepois = msgs.scrollHeight
+msgs.scrollTop += (alturaDepois - alturaAntes)
+loading=false
+
+}
+
+/* ===== REALTIME ===== */
+function realtime(){
+
+if(canal) db.removeChannel(canal)
+
+canal = db.channel("chat-"+telefone)
+
+.on("postgres_changes",{
+  event:"INSERT",
+  schema:"public",
+  table:"conversas_whatsapp",
+  filter:`telefone=eq.${telefone}`
+},payload=>{
+
+  const m = payload.new
+
+  const id = m.id || m.message_id
+
+  if(id && mensagensIds.has(id)) return
+
+  render(m)
+
+  // 🔥 NOVO — VERIFICA POSIÇÃO DO USUÁRIO
+  const pertoDoFim =
+    msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 200
+
+  if(pertoDoFim){
+    setTimeout(() => {
+      scrollBottom()
+    }, 50)
+  }
+
+})
+
+.on("postgres_changes",{
+  event:"UPDATE",
+  schema:"public",
+  table:"conversas_whatsapp",
+  filter:`telefone=eq.${telefone}`
+},payload=>{
+
+  const m = payload.new
+
+  // 🔥 atualiza status (✓ ✓✓ azul etc)
+render(m)
+notificar(m)
+})
+
+.subscribe()
+}
+
+/* ===== PREVIEW ===== */
+fileInput.onchange = ()=>{
+arquivo = fileInput.files[0]
+
+preview.style.display="block"
+
+if(arquivo.type.includes("image")){
+preview.innerHTML=`<img src="${URL.createObjectURL(arquivo)}" width="120">`
+}else if(arquivo.type.includes("video")){
+preview.innerHTML=`<video src="${URL.createObjectURL(arquivo)}" width="120" controls></video>`
+}else{
+preview.innerHTML=`📄 ${arquivo.name}`
+}
+}
+
+
+/* ===== AUTO ATUALIZAÇÃO SILENCIOSA ===== */
+async function atualizarSilencioso(){
+
+  const {data} = await db
+  .from("conversas_whatsapp")
+  .select("*")
+  .eq("telefone",telefone)
+  .order("created_at",{ascending:false})
+  .limit(20)
+
+  /* 🔥 SE NÃO EXISTE MAIS CONVERSA */
+  if(!data || data.length === 0){
+
+    msgs.innerHTML = `
+      <div style="
+        margin:auto;
+        text-align:center;
+        color:#555;
+        font-size:14px;
+      ">
+        🗑️ Conversa excluída
+      </div>
+    `
+
+    mensagensIds.clear()
+    return
+  }
+
+  /* NORMAL */
+  data.reverse().forEach(m=>{
+
+    const id = m.id || m.message_id
+
+    if(!mensagensIds.has(id)){
+      render(m)
+
+      const pertoDoFim =
+        msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 200
+
+      if(pertoDoFim){
+        scrollBottom()
+      }
+    }
+
+  })
+
+}
+
+
+
+
+
+  
+/* ===== UPLOAD ===== */
+async function uploadMidia(file){
+
+  const nome = Date.now() + "-" + file.name.replace(/\s+/g,"_")
+
+  const { data, error } = await db
+    .storage
+    .from("buffet_whatsa_mercatto")
+    .upload(nome, file)
+
+  if(error){
+    console.error("ERRO UPLOAD:", error)
+    alert("Erro ao enviar arquivo")
+    return null
+  }
+
+  const { data: publicUrlData } = db
+    .storage
+    .from("buffet_whatsa_mercatto")
+    .getPublicUrl(nome)
+
+  if(!publicUrlData?.publicUrl){
+    alert("Erro ao gerar URL pública")
+    return null
+  }
+
+  return publicUrlData.publicUrl
+}
+
+/* ===== ENVIAR ===== */
+async function enviar(){
+
+if(!telefone) return
+
+const texto = msg.value.trim()
+
+const tempId = "temp-"+Date.now()
+
+const temp = {
+id: tempId,
+mensagem:texto,
+created_at:new Date().toLocaleString("sv-SE").replace("T"," "),
+  role:"assistant",
+status:"sent"
+}
+
+render(temp)
+scrollBottom()
+
+msg.value=""
+msg.style.height = "20px"
+
+
+
+
+  
+/* MIDIA */
+let media=null
+let tipo="texto"
+let nomeArquivo=null
+
+if(arquivo){
+
+  media = await uploadMidia(arquivo)
+
+  if(!media){
+    alert("Falha no upload. Cancelando envio.")
+    return
+  }
+
+  nomeArquivo = arquivo.name
+
+  if(arquivo.type.includes("image")) tipo="imagem"
+  else if(arquivo.type.includes("video")) tipo="video"
+  else if(arquivo.type.includes("audio")) tipo="audio"
+  else tipo="documento"
+
+}
+
+/* API */
+const send = await fetch("/api/send",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+telefone,
+mensagem:texto,
+media_url:media,
+tipo,
+nome_arquivo:nomeArquivo
+})
+}).then(r => r.json())
+
+const messageId = send?.message_id
+
+
+  
+
+arquivo=null
+preview.style.display="none"
+
+}
+
+/* ===== START ===== */
+iniciar()
+
+setInterval(atualizarSilencioso, 5000)
+
+function abrirTemplates(){
+  const menu = document.getElementById("menuTemplates")
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex"
+}
+
+async function enviarTemplate(nome){
+
+  if(!telefone) return
+
+  console.log("📤 Enviando template:", nome)
+
+  let parametros = {}
+
+  if(nome === "confirmao_de_reserva"){
+    parametros = {
+      nome: "Cliente",
+      data: "20/03",
+      hora: "20:00",
+      pessoas: "2"
+    }
+  }
+
+  if(nome === "reserva_especial"){
+    parametros = {
+      video: "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4"
+    }
+  }
+
+  if(nome === "hello_world"){
+    parametros = {}
+  }
+
+  try{
+
+    const response = await fetch("/api/send-template",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        telefone,
+        template: nome,
+        parametros
+      })
+    })
+
+    const data = await response.json()
+
+    console.log("📩 RESPOSTA:", data)
+
+    if(data?.error){
+      alert("Erro: " + JSON.stringify(data.error))
+    }
+
+  }catch(err){
+    console.error("🔥 ERRO:", err)
+  }
+
+  document.getElementById("menuTemplates").style.display = "none"
+}
+
+function abrirDisparoMassa(){
+  window.open(
+    "popupmassa.html",
+    "massa",
+    "width=500,height=700"
+  )
+}
+
+/* ===== GALERIA ===== */
+
+let imagemSelecionada = null
+
+function abrirGaleria(){
+
+  const galeria = document.getElementById("galeria")
+
+  if(galeria.style.display === "flex"){
+    galeria.style.display = "none"
+    return
+  }
+
+  galeria.innerHTML = ""
+
+imagensGaleria.forEach(item => {
+
+  const box = document.createElement("div")
+
+  box.style.width = "70px"
+  box.style.textAlign = "center"
+  box.style.cursor = "pointer"
+
+  let media
+
+  if(item.tipo === "video"){
+    media = document.createElement("video")
+    media.src = item.url
+    media.muted = true
+    media.autoplay = true
+    media.loop = true
+    media.playsInline = true
+  }else{
+    media = document.createElement("img")
+    media.src = item.url
+  }
+
+  media.style.width = "70px"
+  media.style.height = "70px"
+  media.style.objectFit = "cover"
+  media.style.borderRadius = "8px"
+
+  const nome = document.createElement("div")
+  nome.innerText = item.nome
+  nome.style.fontSize = "10px"
+  nome.style.marginTop = "3px"
+  nome.style.color = "#333"
+
+box.onclick = () => enviarDiretoGaleria(item)
+  box.appendChild(media)
+  box.appendChild(nome)
+
+  galeria.appendChild(box)
+})
+  galeria.style.display = "flex"
+}
+
+
+/* ===== SELEÇÃO ===== */
+
+async function enviarDiretoGaleria(item){
+
+  if(!telefone) return
+
+  const tempId = "temp-"+Date.now()
+
+  const temp = {
+    id: tempId,
+    tipo: item.tipo,
+    media_url: item.url,
+    mensagem: item.nome,
+    created_at:new Date().toLocaleString("sv-SE").replace("T"," "),
+    role:"assistant",
+    status:"sent"
+  }
+
+  render(temp)
+  scrollBottom()
+
+  // fecha galeria
+  document.getElementById("galeria").style.display = "none"
+
+  // 🔥 ENVIA PARA API
+  const send = await fetch("/api/send",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      telefone,
+      mensagem: item.nome,
+      media_url: item.url,
+      tipo: item.tipo
+    })
+  }).then(r=>r.json())
+
+  const messageId = send?.message_id
+
+  // 🔥 AGORA SALVA NO SUPABASE (FALTAVA ISSO)
+  await db.from("conversas_whatsapp").insert({
+    telefone,
+    mensagem: item.nome,
+    tipo: item.tipo,
+    media_url: item.url,
+    role:"assistant",
+    message_id: messageId,
+    status:"sent"
+  }).select().single().then(({data})=>{
+
+    const tempEl = document.getElementById(tempId)
+
+    if(tempEl && data?.id){
+      tempEl.id = data.id
+      mensagensIds.add(data.id)
+    }
+
+  })
+
+}
+/* ===== ENVIO ===== */
+
+async function enviarImagemGaleria(){
+
+  if(!imagemSelecionada || !telefone) return
+
+  const media = imagemSelecionada.url
+  const legenda = imagemSelecionada.nome
+
+  const tempId = "temp-"+Date.now()
+
+  const temp = {
+    id: tempId,
+    tipo: imagemSelecionada.tipo,
+    media_url:media,
+    mensagem: legenda,
+    created_at:new Date().toLocaleString("sv-SE").replace("T"," "),
+    role:"assistant",
+    status:"sent"
+  }
+
+  render(temp)
+  scrollBottom()
+
+  const send = await fetch("/api/send",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      telefone,
+      mensagem: legenda,
+      media_url: media,
+      tipo: imagemSelecionada.tipo
+    })
+  }).then(r=>r.json())
+
+  await db.from("conversas_whatsapp").insert({
+    telefone,
+    mensagem: legenda,
+    tipo: imagemSelecionada.tipo,
+    media_url: media,
+    role:"assistant",
+    message_id: send?.message_id,
+    status:"sent"
+  })
+
+  imagemSelecionada = null
+  preview.style.display = "none"
+  document.getElementById("galeria").style.display = "none"
+}
+
+
+
+const textarea = document.getElementById("msg")
+
+textarea.addEventListener("input", () => {
+
+  textarea.style.height = "20px" // reset
+
+  const newHeight = Math.min(textarea.scrollHeight, 100) // limite 5 linhas
+
+  textarea.style.height = newHeight + "px"
+
+})
+
+let lastTouchEnd = 0;
+
+document.addEventListener('touchend', function (event) {
+  const now = (new Date()).getTime();
+  if (now - lastTouchEnd <= 300) {
+    event.preventDefault();
+  }
+  lastTouchEnd = now;
+}, false);
+
+  
+</script>
+
+</body>
+</html>

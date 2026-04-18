@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel Administrativo • Dúvidas & Aprendizado</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --primary:#111827;
+  --primary-2:#0f172a;
+  --bg:#f3f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --radius:18px;
+  --shadow:0 12px 32px rgba(15,23,42,.08);
+  --success:#16a34a;
+  --danger:#dc2626;
+  --warning:#d97706;
+  --blue:#2563eb;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+button,input,textarea,select{font:inherit}
+.header{
+  position:sticky;top:0;z-index:40;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.header-inner{
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:14px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--primary),#1f2937);
+  display:grid;place-items:center;color:#fff;font-weight:900;font-size:16px;
+  box-shadow:0 10px 24px rgba(17,24,39,.18);
+}
+.brand h1{margin:0;font-size:18px;font-weight:900;line-height:1}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:12px;font-weight:600}
+.header-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  height:42px;border:none;border-radius:12px;padding:0 16px;cursor:pointer;font-weight:800;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.18s ease;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-secondary{background:#fff;color:var(--text);border:1px solid var(--border)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+  
+.layout{
+  width:100%;
+  max-width:100%;
+  padding:22px 24px 32px;
+}
+  
+  
+  
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.kpi{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)
+}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.kpi .value{font-size:28px;font-weight:900;line-height:1}
+.kpi .sub{margin-top:8px;font-size:12px;color:var(--muted);font-weight:600}
+.panel{
+  background:var(--card);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);overflow:hidden
+}
+.toolbar{
+  padding:16px;border-bottom:1px solid var(--border);
+  display:grid;grid-template-columns:1.4fr .9fr .9fr auto;gap:12px;align-items:center
+}
+.field, .select{
+  width:100%;height:46px;border-radius:14px;border:1px solid var(--border);background:#f9fafb;
+  padding:0 14px;font-size:14px;font-weight:600;outline:none
+}
+.field:focus,.select:focus,textarea:focus{border-color:var(--primary)}
+.tabs{display:flex;gap:10px;padding:16px 16px 0}
+.tab{
+  border:none;background:#eef2f7;color:#334155;border-radius:999px;padding:10px 16px;cursor:pointer;font-weight:800
+}
+.tab.active{background:var(--primary);color:#fff}
+.content{padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{
+  background:#fff;border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:0 8px 22px rgba(15,23,42,.05)
+}
+.card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900}
+.badge.pending{background:#fff7ed;color:#c2410c}
+.badge.learned{background:#ecfdf5;color:#166534}
+.badge.phone{background:#eff6ff;color:#1d4ed8}
+.question{
+  font-size:16px;font-weight:900;line-height:1.35;margin:0 0 10px;white-space:pre-wrap;word-break:break-word
+}
+.answer-box{
+  background:#f8fafc;border:1px solid var(--border);border-radius:16px;padding:12px;min-height:120px
+}
+.answer-box textarea{
+  width:100%;min-height:92px;border:none;background:transparent;resize:vertical;outline:none;color:var(--text);font-size:14px;font-weight:600
+}
+.answer-read{
+  white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.55;color:#111827;font-weight:600
+}
+.meta{display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:12px}
+.meta span{
+  background:#f8fafc;border:1px solid var(--border);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;color:#475569
+}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.empty{
+  padding:48px 20px;text-align:center;color:var(--muted);font-weight:700
+}
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(15,23,42,.56);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:90;padding:18px
+}
+.modal-backdrop.show{display:flex}
+.modal{
+  width:min(780px,100%);background:#fff;border-radius:24px;border:1px solid var(--border);box-shadow:0 28px 80px rgba(0,0,0,.25);overflow:hidden
+}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{margin:0;font-size:18px;font-weight:900}
+.modal-body{padding:20px;display:grid;gap:14px}
+.modal-body label{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:6px;display:block}
+.modal-body textarea,.modal-body input{
+  width:100%;border:1px solid var(--border);border-radius:16px;background:#f9fafb;padding:14px;font-size:14px;font-weight:600;outline:none
+}
+.modal-body textarea{min-height:150px;resize:vertical}
+.modal-actions{padding:18px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.loading{
+  position:fixed;inset:0;background:rgba(243,245,249,.75);display:none;align-items:center;justify-content:center;z-index:100
+}
+.loading.show{display:flex}
+.spinner{
+  width:68px;height:68px;border-radius:50%;border:5px solid #dbe3ee;border-top-color:var(--primary);animation:spin 1s linear infinite
+}
+.toast{
+  position:fixed;right:18px;bottom:18px;background:var(--primary);color:#fff;padding:14px 16px;border-radius:14px;
+  box-shadow:0 14px 40px rgba(17,24,39,.28);font-weight:800;z-index:120;display:none;max-width:360px
+}
+.toast.show{display:block}
+.small{font-size:12px;color:var(--muted);font-weight:700}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:1100px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .toolbar{grid-template-columns:1fr 1fr;}
+  .grid{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .toolbar{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr}
+  .actions{flex-direction:column}
+  .btn{width:100%}
+}
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="logo">DV</div>
+        <div>
+          <h1>Painel de Dúvidas & Aprendizado</h1>
+          <p>Gerencie dúvidas pendentes e base de conhecimento no mesmo tema visual do seu index.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btnReload">Atualizar</button>
+        <button class="btn btn-primary" id="btnNovaEntrada">Nova resposta manual</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Dúvidas pendentes</div>
+        <div class="value" id="kpiPendentes">0</div>
+        <div class="sub">Aguardando resposta / triagem</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Aprendizados</div>
+        <div class="value" id="kpiAprendidos">0</div>
+        <div class="sub">Base ativa em aprendizado_bot</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Pendentes hoje</div>
+        <div class="value" id="kpiHoje">0</div>
+        <div class="sub">Criadas na data atual</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Resultado filtrado</div>
+        <div class="value" id="kpiFiltrado">0</div>
+        <div class="sub">Itens exibidos na tela</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="pendentes">Dúvidas pendentes</button>
+        <button class="tab" data-tab="aprendizado">Aprendizado</button>
+      </div>
+
+      <div class="toolbar">
+        <input class="field" id="searchInput" placeholder="Buscar por pergunta, resposta ou telefone">
+        <select class="select" id="sortSelect">
+          <option value="recentes">Mais recentes</option>
+          <option value="antigas">Mais antigas</option>
+          <option value="telefone">Telefone</option>
+          <option value="alfabetica">Pergunta A-Z</option>
+        </select>
+        <select class="select" id="statusSelect">
+          <option value="todos">Todos</option>
+          <option value="pendentes">Só pendentes</option>
+          <option value="aprendizado">Só aprendizado</option>
+          <option value="hoje">Criados hoje</option>
+        </select>
+        <button class="btn btn-primary" id="btnBuscar">Filtrar</button>
+      </div>
+
+      <div class="content">
+        <div class="grid" id="cardsContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalEditorBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle">Editar item</h3>
+        <button class="btn btn-secondary" id="btnFecharModal">Fechar</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label>Pergunta</label>
+          <textarea id="modalPergunta"></textarea>
+        </div>
+        <div>
+          <label>Resposta</label>
+          <textarea id="modalResposta"></textarea>
+        </div>
+        <div>
+          <label>Telefone</label>
+          <input id="modalTelefone" />
+          <div class="small">No aprendizado o telefone é opcional. Em pendentes ele ajuda a localizar a dúvida original.</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnCancelarModal">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarModal">Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading"><div class="spinner"></div></div>
+  <div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://dxkszikemntfusfyrzos.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let abaAtual = "pendentes";
+let duvidasPendentes = [];
+let aprendizado = [];
+let itemEdicao = null;
+let modoNovoAprendizado = false;
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+function hojeISO(){
+  return new Date().toLocaleString("sv-SE",{ timeZone:"America/Bahia" }).split(" ")[0];
+}
+
+function formatarData(data){
+  if(!data) return "-";
+  const d = new Date(data);
+  if(Number.isNaN(d.getTime())) return data;
+  return d.toLocaleString("pt-BR", { dateStyle:"short", timeStyle:"short" });
+}
+
+function escapeHtml(str){
+  return String(str || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function showLoading(show=true){
+  $("#loading").classList.toggle("show", show);
+}
+
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+
+function abrirModal({title, pergunta="", resposta="", telefone="", item=null, novo=false}){
+  itemEdicao = item;
+  modoNovoAprendizado = novo;
+  $("#modalTitle").textContent = title;
+  $("#modalPergunta").value = pergunta || "";
+  $("#modalResposta").value = resposta || "";
+  $("#modalTelefone").value = telefone || "";
+  $("#modalEditorBackdrop").classList.add("show");
+}
+
+function fecharModal(){
+  itemEdicao = null;
+  modoNovoAprendizado = false;
+  $("#modalEditorBackdrop").classList.remove("show");
+}
+
+async function fetchAll(table, orderColumn="created_at", ascending=false){
+  const pageSize = 1000;
+  let from = 0;
+  let all = [];
+
+  while(true){
+    const to = from + pageSize - 1;
+    const { data, error } = await sb
+      .from(table)
+      .select("*")
+      .order(orderColumn, { ascending })
+      .range(from, to);
+
+    if(error) throw error;
+    if(!data || !data.length) break;
+
+    all = all.concat(data);
+    if(data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return all;
+}
+
+async function carregarDados(){
+  showLoading(true);
+  try{
+    const [duvidas, aprendizados] = await Promise.all([
+      fetchAll("duvidas_pendentes", "created_at", false),
+      fetchAll("aprendizado_bot", "created_at", false)
+    ]);
+
+    duvidasPendentes = duvidas || [];
+    aprendizado = aprendizados || [];
+
+    atualizarKPIs();
+    renderizar();
+    toast("Painel atualizado com sucesso");
+  }catch(err){
+    console.error(err);
+    toast("Erro ao carregar dados do Supabase");
+  }finally{
+    showLoading(false);
+  }
+}
+
+function atualizarKPIs(listaFiltrada=null){
+  const hoje = hojeISO();
+  $("#kpiPendentes").textContent = duvidasPendentes.length;
+  $("#kpiAprendidos").textContent = aprendizado.length;
+  $("#kpiHoje").textContent = duvidasPendentes.filter(i => String(i.created_at || "").startsWith(hoje)).length;
+  $("#kpiFiltrado").textContent = Array.isArray(listaFiltrada) ? listaFiltrada.length : (abaAtual === "pendentes" ? duvidasPendentes.length : aprendizado.length);
+}
+
+function obterListaBase(){
+  return abaAtual === "pendentes" ? [...duvidasPendentes] : [...aprendizado];
+}
+
+function aplicarFiltros(lista){
+  const termo = $("#searchInput").value.trim().toLowerCase();
+  const ordem = $("#sortSelect").value;
+  const status = $("#statusSelect").value;
+  const hoje = hojeISO();
+
+  let filtrada = lista.filter(item => {
+    const pergunta = String(item.pergunta || "").toLowerCase();
+    const resposta = String(item.resposta || "").toLowerCase();
+    const telefone = String(item.telefone || "").toLowerCase();
+
+    const bateTermo = !termo || pergunta.includes(termo) || resposta.includes(termo) || telefone.includes(termo);
+    if(!bateTermo) return false;
+
+    if(status === "pendentes" && abaAtual !== "pendentes") return false;
+    if(status === "aprendizado" && abaAtual !== "aprendizado") return false;
+    if(status === "hoje" && !String(item.created_at || "").startsWith(hoje)) return false;
+
+    return true;
+  });
+
+  if(ordem === "antigas") filtrada.sort((a,b)=>new Date(a.created_at) - new Date(b.created_at));
+  if(ordem === "recentes") filtrada.sort((a,b)=>new Date(b.created_at) - new Date(a.created_at));
+  if(ordem === "telefone") filtrada.sort((a,b)=>String(a.telefone||"").localeCompare(String(b.telefone||"")));
+  if(ordem === "alfabetica") filtrada.sort((a,b)=>String(a.pergunta||"").localeCompare(String(b.pergunta||""), "pt-BR"));
+
+  return filtrada;
+}
+
+function renderizar(){
+  const container = $("#cardsContainer");
+  const filtrada = aplicarFiltros(obterListaBase());
+  atualizarKPIs(filtrada);
+
+  if(!filtrada.length){
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1">Nenhum item encontrado para os filtros atuais.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtrada.map(item => abaAtual === "pendentes" ? renderCardPendente(item) : renderCardAprendizado(item)).join("");
+}
+
+function renderCardPendente(item){
+  return `
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <span class="badge pending">Pendente</span>
+          <span class="badge phone">${escapeHtml(item.telefone || "Sem telefone")}</span>
+        </div>
+        <div class="small">${formatarData(item.created_at)}</div>
+      </div>
+
+      <p class="question">${escapeHtml(item.pergunta || "Sem pergunta")}</p>
+
+      <div class="answer-box">
+        <textarea id="resp_${item.id}" placeholder="Digite a resposta que será salva no aprendizado_bot e poderá ser usada com seus clientes..."></textarea>
+      </div>
+
+      <div class="meta">
+        <span>ID: ${escapeHtml(item.id)}</span>
+        <span>Mensagem admin: ${escapeHtml(item.message_id_admin || "-")}</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-success" onclick="responderESalvar('${item.id}')">Responder e salvar</button>
+        <button class="btn btn-blue" onclick="editarPendente('${item.id}')">Editar dúvida</button>
+        <button class="btn btn-danger" onclick="apagarPendente('${item.id}')">Apagar</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderCardAprendizado(item){
+  return `
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <span class="badge learned">Aprendizado ativo</span>
+        </div>
+        <div class="small">${formatarData(item.created_at)}</div>
+      </div>
+
+      <p class="question">${escapeHtml(item.pergunta || "Sem pergunta")}</p>
+
+      <div class="answer-box">
+        <div class="answer-read">${escapeHtml(item.resposta || "Sem resposta")}</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-blue" onclick="editarAprendizado('${item.id}')">Editar</button>
+        <button class="btn btn-danger" onclick="apagarAprendizado('${item.id}')">Apagar</button>
+      </div>
+    </div>
+  `;
+}
+
+async function responderESalvar(id){
+  const item = duvidasPendentes.find(i => i.id === id);
+  if(!item) return toast("Dúvida não encontrada");
+
+  const resposta = (document.getElementById(`resp_${id}`)?.value || "").trim();
+  if(!resposta) return toast("Digite a resposta antes de salvar");
+
+  showLoading(true);
+  try{
+const telefoneAdmin = prompt("Digite o número do admin que está salvando esta resposta:", "") || "";
+
+const { error: erroInsert } = await sb
+  .from("aprendizado_bot")
+  .insert({
+    pergunta: item.pergunta,
+    resposta,
+    telefone_admin: telefoneAdmin.trim()
+  });
+
+    if(erroInsert) throw erroInsert;
+
+    const { error: erroDelete } = await sb
+      .from("duvidas_pendentes")
+      .delete()
+      .eq("id", id);
+
+    if(erroDelete) throw erroDelete;
+
+    duvidasPendentes = duvidasPendentes.filter(i => i.id !== id);
+    aprendizado.unshift({
+      id: crypto.randomUUID(),
+      pergunta: item.pergunta,
+      resposta,
+      created_at: new Date().toISOString()
+    });
+
+    atualizarKPIs();
+    renderizar();
+    toast("Resposta salva em aprendizado_bot com sucesso");
+  }catch(err){
+    console.error(err);
+    toast("Erro ao salvar resposta no aprendizado_bot");
+  }finally{
+    showLoading(false);
+  }
+}
+
+function editarPendente(id){
+  const item = duvidasPendentes.find(i => i.id === id);
+  if(!item) return;
+  abrirModal({
+    title: "Editar dúvida pendente",
+    pergunta: item.pergunta,
+    resposta: "",
+    telefone: item.telefone,
+    item
+  });
+}
+
+function editarAprendizado(id){
+  const item = aprendizado.find(i => i.id === id);
+  if(!item) return;
+  abrirModal({
+    title: "Editar aprendizado",
+    pergunta: item.pergunta,
+    resposta: item.resposta,
+    telefone: item.telefone || "",
+    item
+  });
+}
+
+async function apagarPendente(id){
+  if(!confirm("Deseja realmente apagar esta dúvida pendente?")) return;
+  showLoading(true);
+  try{
+    const { error } = await sb.from("duvidas_pendentes").delete().eq("id", id);
+    if(error) throw error;
+    duvidasPendentes = duvidasPendentes.filter(i => i.id !== id);
+    atualizarKPIs();
+    renderizar();
+    toast("Dúvida pendente apagada");
+  }catch(err){
+    console.error(err);
+    toast("Erro ao apagar dúvida pendente");
+  }finally{
+    showLoading(false);
+  }
+}
+
+async function apagarAprendizado(id){
+  if(!confirm("Deseja realmente apagar este aprendizado?")) return;
+  showLoading(true);
+  try{
+    const { error } = await sb.from("aprendizado_bot").delete().eq("id", id);
+    if(error) throw error;
+    aprendizado = aprendizado.filter(i => i.id !== id);
+    atualizarKPIs();
+    renderizar();
+    toast("Aprendizado apagado");
+  }catch(err){
+    console.error(err);
+    toast("Erro ao apagar aprendizado");
+  }finally{
+    showLoading(false);
+  }
+}
+
+async function salvarModal(){
+  const pergunta = $("#modalPergunta").value.trim();
+  const resposta = $("#modalResposta").value.trim();
+  const telefone = $("#modalTelefone").value.trim();
+
+  if(!pergunta) return toast("A pergunta é obrigatória");
+
+  showLoading(true);
+  try{
+    if(modoNovoAprendizado){
+      if(!resposta) return toast("Digite a resposta para criar o aprendizado");
+
+const { data, error } = await sb
+  .from("aprendizado_bot")
+  .insert({
+    pergunta,
+    resposta,
+    telefone_admin: telefone || ""
+  })
+  .select()
+  .single();
+
+      if(error) throw error;
+      aprendizado.unshift(data);
+      fecharModal();
+      atualizarKPIs();
+      renderizar();
+      toast("Novo aprendizado criado");
+      return;
+    }
+
+    if(!itemEdicao) return;
+
+    if(abaAtual === "pendentes"){
+      const payload = { pergunta, telefone };
+      const { error } = await sb
+        .from("duvidas_pendentes")
+        .update(payload)
+        .eq("id", itemEdicao.id);
+      if(error) throw error;
+
+      duvidasPendentes = duvidasPendentes.map(i => i.id === itemEdicao.id ? { ...i, ...payload } : i);
+      toast("Dúvida pendente atualizada");
+    } else {
+      if(!resposta) return toast("A resposta é obrigatória");
+      const payload = { pergunta, resposta };
+      const { error } = await sb
+        .from("aprendizado_bot")
+        .update(payload)
+        .eq("id", itemEdicao.id);
+      if(error) throw error;
+
+      aprendizado = aprendizado.map(i => i.id === itemEdicao.id ? { ...i, ...payload } : i);
+      toast("Aprendizado atualizado");
+    }
+
+    fecharModal();
+    atualizarKPIs();
+    renderizar();
+  }catch(err){
+    console.error(err);
+    toast("Erro ao salvar alterações");
+  }finally{
+    showLoading(false);
+  }
+}
+
+$$('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    abaAtual = btn.dataset.tab;
+    renderizar();
+  });
+});
+
+$("#btnReload").addEventListener("click", carregarDados);
+$("#btnBuscar").addEventListener("click", renderizar);
+$("#searchInput").addEventListener("input", renderizar);
+$("#sortSelect").addEventListener("change", renderizar);
+$("#statusSelect").addEventListener("change", renderizar);
+$("#btnFecharModal").addEventListener("click", fecharModal);
+$("#btnCancelarModal").addEventListener("click", fecharModal);
+$("#btnSalvarModal").addEventListener("click", salvarModal);
+$("#modalEditorBackdrop").addEventListener("click", e => { if(e.target.id === 'modalEditorBackdrop') fecharModal(); });
+$("#btnNovaEntrada").addEventListener("click", () => abrirModal({ title:"Novo aprendizado manual", novo:true }));
+
+carregarDados();
+</script>
+</body>
+</html>

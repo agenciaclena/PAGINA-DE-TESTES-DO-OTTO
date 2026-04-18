@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>CONTROLE DE COUVERT E EXTRAS - MERCATTO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+    #loading-screen {
+      position: fixed; inset: 0;
+      background: white; z-index: 9999;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+    }
+    #loading-screen img { width: 200px; animation: fadeIn 1s ease-in-out; }
+    #loading-message { font-size: 18px; margin-top: 20px; color: #333; }
+    @keyframes fadeIn { from {opacity:0; transform:scale(.95);} to {opacity:1; transform:scale(1);} }
+    header { display:flex; align-items:center; padding:10px 20px; background:white; border-bottom:1px solid #ccc; }
+    header img { height: 50px; margin-right: 20px; }
+    h1 { font-size: 1.5em; }
+    form { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
+    label { font-weight: bold; }
+    input, select, button {
+      width: 100%; padding: 8px; margin-top: 4px;
+      border-radius: 4px; border: 1px solid #ccc; font-size: 14px;
+    }
+    input[readonly] { background: #eee; }
+    button { background: #2c3e50; color: white; border: none; cursor: pointer; }
+    button:hover { background: #34495e; }
+    table { width: calc(100% - 40px); margin: 0 20px 20px; border-collapse: collapse; background: white; }
+    th, td { padding: 8px; border: 1px solid #ddd; text-align: left; font-size: 13px; }
+    .pago { background: #c8f7c5; } .pendente { background: #f7c5c5; } .lancado { background: #fdf4c5; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    #filtros { display:flex; justify-content:flex-start; align-items:center; padding:0 20px 10px; gap:10px; flex-wrap:wrap; }
+    #filtros select { padding:8px; font-size:14px; }
+    @media (max-width: 768px) { #filtros { flex-direction:column; align-items:flex-start; } }
+    .ver-comentario{display:inline-block; margin-top:4px; font-size:12px; color:#0b5ed7; text-decoration:underline; background:transparent; border:none; padding:0; cursor:pointer;}
+    #coment-modal{display:none; position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center;}
+    #coment-modal .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.45);}
+    #coment-modal .panel{position:relative; z-index:1; width:min(92vw,520px); background:#fff; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:14px 16px;}
+    #coment-modal h3{margin:0 0 8px; font-size:16px;}
+    #coment-modal p{margin:0; white-space:pre-wrap;}
+    #coment-modal .close{position:absolute; top:8px; right:10px; background:transparent; border:none; font-size:20px; cursor:pointer; color:#555;}
+  </style>
+</head>
+<body>
+
+  <div id="loading-screen">
+    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo">
+    <p id="loading-message">Carregando...</p>
+  </div>
+
+  <header>
+    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo">
+    <h1>CONTROLE DE COUVERT E EXTRA - MERCATTO</h1>
+  </header>
+
+  <form id="form">
+    <div><label>Empresa</label>
+      <select name="empresa" id="empresa" required>
+        <option value="MERCATTO RESTAURANTE">MERCATTO RESTAURANTE</option>
+        <option value="MERCATTO EMPÓRIO">MERCATTO EMPÓRIO</option>
+        <option value="MERCATTO KIDS">MERCATTO KIDS</option>
+      </select>
+    </div>
+    <div><label>CPF ou CNPJ</label><input type="text" name="cpf" id="cpfCnpj" required placeholder="Digite o número verdadeiro"></div>
+    <div><label>Mês</label><select name="mes" id="mes" required></select></div>
+    <div><label>Data</label><input type="date" name="data" required></div>
+    <div><label>Profissional</label><input list="listaProfissionais" name="profissional" id="profissional" required><datalist id="listaProfissionais"></datalist></div>
+    <div><label>Função</label><input type="text" name="funcao" id="funcao" required></div>
+    <div><label>Dados bancários / Pix</label><input type="text" name="dadosPix" id="dadosPix" required></div>
+    <div><label>Titular da Conta</label><input type="text" name="titularConta" id="titularConta" required></div>
+    <div><label>Tempo</label><input type="text" name="tempo" required></div>
+    <div><label>Valor acordado (R$)</label><input type="number" name="valorAcordado" id="valorAcordado" step="0.01" required></div>
+    <div><label>Bonificação (R$)</label><input type="number" name="bonificacao" id="bonificacao" step="0.01" required></div>
+    <div><label>Desconto de consumo (R$)</label><input type="number" name="desconto" id="desconto" step="0.01" required></div>
+    <div><label>Valor final (R$)</label><input type="number" name="valorFinal" id="valorFinal" step="0.01" readonly></div>
+    <div><label>Data Pagamento</label><input type="date" name="dataPagamento" required></div>
+    <div>
+      <label>Status</label>
+      <select name="status" required>
+        <option value="PENDENTE">PENDENTE</option>
+        <option value="LANÇADO">LANÇADO</option>
+        <option value="PAGO">PAGO</option>
+      </select>
+    </div>
+    <div style="grid-column: span 3;"><button type="submit">Salvar</button></div>
+  </form>
+
+  <div id="filtros">
+    <div>
+      <label>Filtrar por status:</label>
+      <select id="filtroStatus">
+        <option value="TODOS">TODOS</option>
+        <option value="PENDENTE" selected>PENDENTE</option>
+        <option value="LANÇADO">LANÇADO</option>
+        <option value="PAGO">PAGO</option>
+      </select>
+    </div>
+    <div>
+      <label>Filtrar por empresa:</label>
+      <select id="filtroEmpresa">
+        <option value="TODAS" selected>TODAS</option>
+        <option value="MERCATTO DELÍCIA">MERCATTO DELÍCIA</option>
+        <option value="MERCATTO RESTAURANTE">MERCATTO RESTAURANTE</option>
+        <option value="MERCATTO EMPÓRIO">MERCATTO EMPÓRIO</option>
+        <option value="MERCATTO KIDS">MERCATTO KIDS</option>
+      </select>
+    </div>
+  </div>
+
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th>Empresa</th>
+        <th>Data</th><th>Profissional</th><th>Função</th><th>Pix</th><th>Titular</th><th>Tempo</th>
+        <th>Valor Acordado</th><th>Bonificação</th><th>Desconto</th><th>Valor Final</th>
+        <th>Data Pagamento</th><th><strong>CPF</strong></th>
+        <th>Status</th><th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Popup de comentário -->
+  <div id="coment-modal" aria-hidden="true">
+    <div class="backdrop" onclick="fecharComentario()"></div>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="coment-title">
+      <button class="close" title="Fechar" aria-label="Fechar" onclick="fecharComentario()">&times;</button>
+      <h3 id="coment-title">Comentário</h3>
+      <p id="coment-texto"></p>
+    </div>
+  </div>
+
+  <script>
+    const URL = 'https://script.google.com/macros/s/AKfycbw1vkh07O8oLHmeQik7fVSkJ8xgMIoe2GxQMw1FVPSVyYDk1KHQqnl1WxyXvlg9d5wT/exec';
+    const form = document.getElementById('form');
+    const filtroStatus = document.getElementById('filtroStatus');
+    const filtroEmpresa = document.getElementById('filtroEmpresa');
+    let servidores = [], dadosRegistros = [];
+
+    function proximaSegunda(dataRef = new Date()) {
+      const dia = dataRef.getDay();
+      const diasParaSegunda = dia === 1 ? 7 : (8 - dia);
+      const proxima = new Date(dataRef);
+      proxima.setDate(proxima.getDate() + diasParaSegunda);
+      return proxima.toISOString().split('T')[0];
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const hoje = new Date();
+      const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const selectMes = document.getElementById('mes');
+      for (let i = 0; i < 12; i++) {
+        const option = document.createElement('option');
+        option.value = `${nomesMeses[i]} de ${hoje.getFullYear()}`;
+        option.textContent = `${nomesMeses[i]} de ${hoje.getFullYear()}`;
+        if (i === hoje.getMonth()) option.selected = true;
+        selectMes.appendChild(option);
+      }
+      document.querySelector('input[name="data"]').value = hoje.toISOString().split('T')[0];
+      document.querySelector('input[name="dataPagamento"]').value = proximaSegunda(hoje);
+    });
+
+    fetch(`${URL}?acao=servidores`).then(res => res.json()).then(data => {
+      servidores = data;
+      const lista = document.getElementById('listaProfissionais');
+      lista.innerHTML = '';
+      data.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.nome;
+        lista.appendChild(opt);
+      });
+    });
+
+    document.getElementById('profissional').addEventListener('input', () => {
+      const nomeDigitado = profissional.value.trim().toUpperCase();
+      const p = servidores.find(p => p.nome.trim().toUpperCase() === nomeDigitado);
+      if (p) {
+        funcao.value = p.funcao || '';
+        dadosPix.value = p.pix || '';
+        titularConta.value = p.titular || '';
+        valorAcordado.value = p.valor || '';
+        cpfCnpj.value = p.cpf || '';
+        funcao.readOnly = false; // sempre editável
+        dadosPix.readOnly = true;
+        titularConta.readOnly = true;
+        valorAcordado.readOnly = false;
+        cpfCnpj.readOnly = true;
+      } else {
+        funcao.value = '';
+        dadosPix.value = '';
+        titularConta.value = '';
+        valorAcordado.value = '';
+        cpfCnpj.value = '';
+        funcao.readOnly = false;
+        dadosPix.readOnly = false;
+        titularConta.readOnly = false;
+        valorAcordado.readOnly = false;
+        cpfCnpj.readOnly = false;
+      }
+    });
+
+    [valorAcordado, desconto].forEach(input => {
+      input.addEventListener('input', () => {
+        const v = parseFloat(valorAcordado.value) || 0;
+        const d = parseFloat(desconto.value) || 0;
+        valorFinal.value = (v - d).toFixed(2);
+      });
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const btn = form.querySelector('button[type="submit"]');
+      const loading = document.getElementById('loading-screen');
+      const msg = document.getElementById('loading-message');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      msg.textContent = 'Salvando dados...';
+      loading.style.display = 'flex';
+      const dados = Object.fromEntries(new FormData(form));
+      dados.acao = 'adicionar';
+      fetch(URL, { method: 'POST', body: JSON.stringify(dados) }).then(() => {
+        form.reset();
+        filtroStatus.value = 'PENDENTE';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = 'Salvar';
+          loading.style.display = 'none';
+          carregarRegistros();
+        }, 1500);
+      });
+    });
+
+    function carregarRegistros() {
+      fetch(`${URL}?acao=ler`).then(res => res.json()).then(data => {
+        dadosRegistros = data;
+        const tbody = document.querySelector('#tabela tbody');
+        tbody.innerHTML = '';
+        const filtroS = filtroStatus.value || 'PENDENTE';
+        const filtroE = filtroEmpresa.value || 'TODAS';
+        data.forEach(item => {
+          if (filtroS !== 'TODOS' && item.status !== filtroS) return;
+          if (filtroE !== 'TODAS' && item.empresa !== filtroE) return;
+          const comentario = (item.comentario || '').toString().trim();
+          const linkComentario = comentario
+            ? `<div><button class="ver-comentario" onclick="abrirComentario(${item.index})">VER COMENTÁRIO</button></div>`
+            : '';
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-index', item.index);
+          tr.className = item.status === 'PAGO' ? 'pago' : item.status === 'PENDENTE' ? 'pendente' : 'lancado';
+          tr.innerHTML = `
+            <td>${item.empresa || ''}</td>
+            <td>${item.data?.split('T')[0] || ''}</td>
+            <td>${item.profissional || ''}${linkComentario}</td>
+            <td>${item.funcao || ''}</td>
+            <td>${item.pix || ''}</td>
+            <td>${item.titular || ''}</td>
+            <td>${item.tempo || ''}</td>
+            <td>R$ ${(item.valorAcordado || 0).toFixed(2)}</td>
+            <td>R$ ${(item.bonificacao || 0).toFixed(2)}</td>
+            <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
+            <td>R$ ${(item.valorFinal || 0).toFixed(2)}</td>
+            <td>${item.dataPagamento ? new Date(item.dataPagamento).toLocaleDateString('pt-BR') : ''}</td>
+            <td>${item.cpf || ''}</td>
+            <td>
+              <select onchange="atualizarStatus(this, ${item.index})">
+                <option value="PENDENTE" ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
+                <option value="LANÇADO" ${item.status === 'LANÇADO' ? 'selected' : ''}>LANÇADO</option>
+                <option value="PAGO" ${item.status === 'PAGO' ? 'selected' : ''}>PAGO</option>
+              </select>
+            </td>
+            <td><div class="actions"><button onclick="excluir(${item.index})">Excluir</button></div></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function abrirComentario(index){
+      const item = dadosRegistros.find(x => x.index === index);
+      const texto = (item && item.comentario ? String(item.comentario) : '').trim();
+      if(!texto){ alert('Sem comentário para este lançamento.'); return; }
+      document.getElementById('coment-texto').textContent = texto;
+      document.getElementById('coment-modal').style.display = 'flex';
+    }
+    function fecharComentario(){ document.getElementById('coment-modal').style.display = 'none'; }
+
+    function atualizarStatus(select, index) {
+      const status = select.value;
+      const loading = document.getElementById('loading-screen');
+      const msg = document.getElementById('loading-message');
+      msg.textContent = 'Atualizando status...';
+      loading.style.display = 'flex';
+      fetch(URL, { method: 'POST', body: JSON.stringify({ acao: 'atualizarStatus', index, status }) })
+        .then(() => setTimeout(() => location.reload(), 1500));
+    }
+
+    function excluir(index) {
+      const senha = prompt("Digite a senha para excluir:");
+      if (senha === '1234') {
+        fetch(URL, { method: 'POST', body: JSON.stringify({ acao: 'excluir', index }) })
+          .then(() => document.querySelector(`tr[data-index="${index}"]`)?.remove());
+      } else { alert("Senha incorreta."); }
+    }
+
+    filtroStatus.addEventListener('change', carregarRegistros);
+    filtroEmpresa.addEventListener('change', carregarRegistros);
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+        filtroStatus.value = 'PENDENTE';
+        carregarRegistros();
+      }, 2000);
+    });
+
+    // === CPF/CNPJ máscara e validação ===
+    const cpfCnpjInput = document.getElementById("cpfCnpj");
+    cpfCnpjInput.addEventListener("input", () => {
+      let v = cpfCnpjInput.value.replace(/\D/g, "");
+      if (v.length <= 11) {
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+      } else {
+        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+        v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+        v = v.replace(/(\d{4})(\d)/, "$1-$2");
+      }
+      cpfCnpjInput.value = v;
+    });
+  </script>
+</body>
+</html>

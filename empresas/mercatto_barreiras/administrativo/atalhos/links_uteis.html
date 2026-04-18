@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Central de Links</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+
+body{
+background:#f1f5f9;
+padding:30px;
+}
+
+/* HEADER */
+.header{
+font-size:26px;
+font-weight:800;
+margin-bottom:20px;
+color:#0f172a;
+}
+
+/* SEARCH */
+.search{
+width:100%;
+padding:14px;
+border-radius:12px;
+border:1px solid #e2e8f0;
+margin-bottom:20px;
+font-size:14px;
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+gap:18px;
+}
+
+/* CARD */
+.card{
+background:#fff;
+border-radius:16px;
+padding:18px;
+border:1px solid #e2e8f0;
+box-shadow:0 8px 25px rgba(0,0,0,.05);
+display:flex;
+flex-direction:column;
+gap:10px;
+transition:.2s;
+}
+
+.card:hover{
+transform:translateY(-3px);
+box-shadow:0 15px 35px rgba(0,0,0,.08);
+}
+
+/* TITLE */
+.title{
+font-weight:800;
+color:#0f172a;
+font-size:16px;
+}
+
+/* LINK */
+.link{
+font-size:13px;
+color:#64748b;
+word-break:break-all;
+}
+
+/* BUTTON */
+.actions{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+button{
+flex:1;
+padding:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-weight:700;
+}
+
+.copy{
+background:#14c8a8;
+color:#fff;
+}
+
+.open{
+background:#e2e8f0;
+}
+
+.copy:hover{
+background:#0ea58b;
+}
+
+.open:hover{
+background:#cbd5e1;
+}
+
+/* TOAST */
+.toast{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#22c55e;
+color:#fff;
+padding:12px 16px;
+border-radius:10px;
+font-weight:800;
+opacity:0;
+transition:.2s;
+}
+
+.toast.show{
+opacity:1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">🔗 Central de Links</div>
+
+<input class="search" placeholder="Buscar link..." oninput="filtrar(this.value)">
+
+<div class="grid" id="grid"></div>
+
+<div class="toast" id="toast">COPIADO</div>
+
+<script>
+
+const links = [
+
+  {nome:"Requisições", url:"https://otavio-seven.vercel.app/restaurante/requisicoesdemercadorias.html"},
+  {nome:"cardápio", url:"https://otavio-seven.vercel.app/mercatto/cardapio.html"},
+  {nome:"WhatsApp API", url:"https://seusite.com/whatsapp"},
+  {nome:"Cadastro de Empresas", url:"https://seusite.com/empresas"},
+  {nome:"Licitações", url:"https://seusite.com/licitacoes"},
+  {nome:"Cotações", url:"https://seusite.com/cotacoes"},
+  {nome:"Análises", url:"https://seusite.com/analises"}
+];
+
+const grid = document.getElementById("grid");
+
+function render(lista){
+  grid.innerHTML = lista.map(l=>`
+    <div class="card">
+      <div class="title">${l.nome}</div>
+      <div class="link">${l.url}</div>
+
+      <div class="actions">
+        <button class="copy" onclick="copiar('${l.url}')">Copiar</button>
+        <button class="open" onclick="window.open('${l.url}')">Abrir</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+render(links);
+
+function copiar(texto){
+  navigator.clipboard.writeText(texto);
+
+  const t = document.getElementById("toast");
+  t.classList.add("show");
+
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+function filtrar(valor){
+  const v = valor.toLowerCase();
+  const filtrado = links.filter(l =>
+    l.nome.toLowerCase().includes(v) ||
+    l.url.toLowerCase().includes(v)
+  );
+  render(filtrado);
+}
+
+</script>
+
+</body>
+</html>
