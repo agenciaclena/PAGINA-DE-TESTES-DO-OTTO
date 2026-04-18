@@ -220,10 +220,10 @@ form.addEventListener('submit', async (e) => {
       pix: dados.dadosPix,
       titular: dados.titularConta,
       tempo: dados.tempo,
-      valor_acordado: dados.valorAcordado,
-      bonificacao: dados.bonificacao,
-      desconto: dados.desconto,
-      valor_final: dados.valorFinal,
+valor_acordado: parseFloat(dados.valorAcordado) || 0,
+bonificacao: parseFloat(dados.bonificacao) || 0,
+desconto: parseFloat(dados.desconto) || 0,
+valor_final: parseFloat(dados.valorFinal) || 0,
       data_pagamento: dados.dataPagamento,
       status: dados.status
     }]);
@@ -283,7 +283,7 @@ form.addEventListener('submit', async (e) => {
       <td>R$ ${(item.bonificacao || 0).toFixed(2)}</td>
       <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
       <td>R$ ${(item.valor_final || 0).toFixed(2)}</td>
-      <td>${item.data_pagamento || ''}</td>
+      <td>${item.data_pagamento ? item.data_pagamento.split('T')[0] : ''}</td>
       <td>${item.cpf || ''}</td>
 
       <td>
