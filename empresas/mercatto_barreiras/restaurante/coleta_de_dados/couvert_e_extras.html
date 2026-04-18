@@ -132,10 +132,17 @@
       <p id="coment-texto"></p>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script>
-    const URL = 'https://script.google.com/macros/s/AKfycbw1vkh07O8oLHmeQik7fVSkJ8xgMIoe2GxQMw1FVPSVyYDk1KHQqnl1WxyXvlg9d5wT/exec';
-    const form = document.getElementById('form');
+<script>
+const supabaseClient = supabase.createClient(
+  "https://ehxrrpsiksceljmhsfxk.supabase.co",
+  "sb_publishable_Jm2ZQKzPS3gNPCKSjFAmYQ_WNMYwF1j"
+);  
+  
+  
+  
+  const form = document.getElementById('form');
     const filtroStatus = document.getElementById('filtroStatus');
     const filtroEmpresa = document.getElementById('filtroEmpresa');
     let servidores = [], dadosRegistros = [];
@@ -163,147 +170,200 @@
       document.querySelector('input[name="dataPagamento"]').value = proximaSegunda(hoje);
     });
 
-    fetch(`${URL}?acao=servidores`).then(res => res.json()).then(data => {
-      servidores = data;
-      const lista = document.getElementById('listaProfissionais');
-      lista.innerHTML = '';
-      data.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.nome;
-        lista.appendChild(opt);
-      });
-    });
+  async function carregarColaboradores() {
 
-    document.getElementById('profissional').addEventListener('input', () => {
-      const nomeDigitado = profissional.value.trim().toUpperCase();
-      const p = servidores.find(p => p.nome.trim().toUpperCase() === nomeDigitado);
-      if (p) {
-        funcao.value = p.funcao || '';
-        dadosPix.value = p.pix || '';
-        titularConta.value = p.titular || '';
-        valorAcordado.value = p.valor || '';
-        cpfCnpj.value = p.cpf || '';
-        funcao.readOnly = false; // sempre editável
-        dadosPix.readOnly = true;
-        titularConta.readOnly = true;
-        valorAcordado.readOnly = false;
-        cpfCnpj.readOnly = true;
-      } else {
-        funcao.value = '';
-        dadosPix.value = '';
-        titularConta.value = '';
-        valorAcordado.value = '';
-        cpfCnpj.value = '';
-        funcao.readOnly = false;
-        dadosPix.readOnly = false;
-        titularConta.readOnly = false;
-        valorAcordado.readOnly = false;
-        cpfCnpj.readOnly = false;
-      }
-    });
+  const { data, error } = await supabaseClient
+    .from('colaboradores')
+    .select('*');
 
-    [valorAcordado, desconto].forEach(input => {
-      input.addEventListener('input', () => {
-        const v = parseFloat(valorAcordado.value) || 0;
-        const d = parseFloat(desconto.value) || 0;
-        valorFinal.value = (v - d).toFixed(2);
-      });
-    });
+  if (error) {
+    console.error(error);
+    return;
+  }
 
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const btn = form.querySelector('button[type="submit"]');
-      const loading = document.getElementById('loading-screen');
-      const msg = document.getElementById('loading-message');
-      btn.disabled = true;
-      btn.textContent = 'Salvando...';
-      msg.textContent = 'Salvando dados...';
-      loading.style.display = 'flex';
-      const dados = Object.fromEntries(new FormData(form));
-      dados.acao = 'adicionar';
-      fetch(URL, { method: 'POST', body: JSON.stringify(dados) }).then(() => {
-        form.reset();
-        filtroStatus.value = 'PENDENTE';
-        setTimeout(() => {
-          btn.disabled = false;
-          btn.textContent = 'Salvar';
-          loading.style.display = 'none';
-          carregarRegistros();
-        }, 1500);
-      });
-    });
+  servidores = data;
 
-    function carregarRegistros() {
-      fetch(`${URL}?acao=ler`).then(res => res.json()).then(data => {
-        dadosRegistros = data;
-        const tbody = document.querySelector('#tabela tbody');
-        tbody.innerHTML = '';
-        const filtroS = filtroStatus.value || 'PENDENTE';
-        const filtroE = filtroEmpresa.value || 'TODAS';
-        data.forEach(item => {
-          if (filtroS !== 'TODOS' && item.status !== filtroS) return;
-          if (filtroE !== 'TODAS' && item.empresa !== filtroE) return;
-          const comentario = (item.comentario || '').toString().trim();
-          const linkComentario = comentario
-            ? `<div><button class="ver-comentario" onclick="abrirComentario(${item.index})">VER COMENTÁRIO</button></div>`
-            : '';
-          const tr = document.createElement('tr');
-          tr.setAttribute('data-index', item.index);
-          tr.className = item.status === 'PAGO' ? 'pago' : item.status === 'PENDENTE' ? 'pendente' : 'lancado';
-          tr.innerHTML = `
-            <td>${item.empresa || ''}</td>
-            <td>${item.data?.split('T')[0] || ''}</td>
-            <td>${item.profissional || ''}${linkComentario}</td>
-            <td>${item.funcao || ''}</td>
-            <td>${item.pix || ''}</td>
-            <td>${item.titular || ''}</td>
-            <td>${item.tempo || ''}</td>
-            <td>R$ ${(item.valorAcordado || 0).toFixed(2)}</td>
-            <td>R$ ${(item.bonificacao || 0).toFixed(2)}</td>
-            <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
-            <td>R$ ${(item.valorFinal || 0).toFixed(2)}</td>
-            <td>${item.dataPagamento ? new Date(item.dataPagamento).toLocaleDateString('pt-BR') : ''}</td>
-            <td>${item.cpf || ''}</td>
-            <td>
-              <select onchange="atualizarStatus(this, ${item.index})">
-                <option value="PENDENTE" ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
-                <option value="LANÇADO" ${item.status === 'LANÇADO' ? 'selected' : ''}>LANÇADO</option>
-                <option value="PAGO" ${item.status === 'PAGO' ? 'selected' : ''}>PAGO</option>
-              </select>
-            </td>
-            <td><div class="actions"><button onclick="excluir(${item.index})">Excluir</button></div></td>
-          `;
-          tbody.appendChild(tr);
-        });
-      });
-    }
+  const lista = document.getElementById('listaProfissionais');
+  lista.innerHTML = '';
 
-    function abrirComentario(index){
-      const item = dadosRegistros.find(x => x.index === index);
+  data.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.nome;
+    lista.appendChild(opt);
+  });
+}
+
+carregarColaboradores();
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const btn = form.querySelector('button[type="submit"]');
+  const loading = document.getElementById('loading-screen');
+  const msg = document.getElementById('loading-message');
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+  msg.textContent = 'Salvando dados...';
+  loading.style.display = 'flex';
+
+  const dados = Object.fromEntries(new FormData(form));
+
+  const { error } = await supabaseClient
+    .from('lancamentos_couvert')
+    .insert([{
+      empresa: dados.empresa,
+      cpf: dados.cpf,
+      mes: dados.mes,
+      data: dados.data,
+      profissional: dados.profissional,
+      funcao: dados.funcao,
+      pix: dados.dadosPix,
+      titular: dados.titularConta,
+      tempo: dados.tempo,
+      valor_acordado: dados.valorAcordado,
+      bonificacao: dados.bonificacao,
+      desconto: dados.desconto,
+      valor_final: dados.valorFinal,
+      data_pagamento: dados.dataPagamento,
+      status: dados.status
+    }]);
+
+  loading.style.display = 'none';
+  btn.disabled = false;
+  btn.textContent = 'Salvar';
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao salvar");
+    return;
+  }
+
+  form.reset();
+  carregarRegistros();
+});
+
+
+  
+   async function carregarRegistros() {
+
+  const { data, error } = await supabaseClient
+    .from('lancamentos_couvert')
+    .select('*')
+    .order('data', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  dadosRegistros = data;
+
+  const tbody = document.querySelector('#tabela tbody');
+  tbody.innerHTML = '';
+
+  const filtroS = filtroStatus.value || 'PENDENTE';
+  const filtroE = filtroEmpresa.value || 'TODAS';
+
+  data.forEach(item => {
+
+    if (filtroS !== 'TODOS' && item.status !== filtroS) return;
+    if (filtroE !== 'TODAS' && item.empresa !== filtroE) return;
+
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td>${item.empresa || ''}</td>
+      <td>${item.data ? item.data.split('T')[0] : ''}</td>
+      <td>${item.profissional || ''}</td>
+      <td>${item.funcao || ''}</td>
+      <td>${item.pix || ''}</td>
+      <td>${item.titular || ''}</td>
+      <td>${item.tempo || ''}</td>
+      <td>R$ ${(item.valor_acordado || 0).toFixed(2)}</td>
+      <td>R$ ${(item.bonificacao || 0).toFixed(2)}</td>
+      <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
+      <td>R$ ${(item.valor_final || 0).toFixed(2)}</td>
+      <td>${item.data_pagamento || ''}</td>
+      <td>${item.cpf || ''}</td>
+
+      <td>
+        <select onchange="atualizarStatus('${item.id}', this.value)">
+          <option value="PENDENTE" ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
+          <option value="LANÇADO" ${item.status === 'LANÇADO' ? 'selected' : ''}>LANÇADO</option>
+          <option value="PAGO" ${item.status === 'PAGO' ? 'selected' : ''}>PAGO</option>
+        </select>
+      </td>
+
+      <td>
+        <button onclick="excluir('${item.id}')">Excluir</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+
+
+
+  
+
+   function abrirComentario(id){
+      const item = dadosRegistros.find(x => x.id === id);
       const texto = (item && item.comentario ? String(item.comentario) : '').trim();
       if(!texto){ alert('Sem comentário para este lançamento.'); return; }
       document.getElementById('coment-texto').textContent = texto;
       document.getElementById('coment-modal').style.display = 'flex';
     }
+
+
+  
     function fecharComentario(){ document.getElementById('coment-modal').style.display = 'none'; }
 
-    function atualizarStatus(select, index) {
-      const status = select.value;
-      const loading = document.getElementById('loading-screen');
-      const msg = document.getElementById('loading-message');
-      msg.textContent = 'Atualizando status...';
-      loading.style.display = 'flex';
-      fetch(URL, { method: 'POST', body: JSON.stringify({ acao: 'atualizarStatus', index, status }) })
-        .then(() => setTimeout(() => location.reload(), 1500));
-    }
+async function atualizarStatus(id, status) {
 
-    function excluir(index) {
-      const senha = prompt("Digite a senha para excluir:");
-      if (senha === '1234') {
-        fetch(URL, { method: 'POST', body: JSON.stringify({ acao: 'excluir', index }) })
-          .then(() => document.querySelector(`tr[data-index="${index}"]`)?.remove());
-      } else { alert("Senha incorreta."); }
-    }
+  const loading = document.getElementById('loading-screen');
+  const msg = document.getElementById('loading-message');
+
+  msg.textContent = 'Atualizando status...';
+  loading.style.display = 'flex';
+
+  const { error } = await supabaseClient
+    .from('lancamentos_couvert')
+    .update({ status })
+    .eq('id', id);
+
+  loading.style.display = 'none';
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao atualizar");
+    return;
+  }
+
+  carregarRegistros();
+}
+
+async function excluir(id) {
+
+  const senha = prompt("Digite a senha para excluir:");
+  if (senha !== '1234') return;
+
+  const { error } = await supabaseClient
+    .from('lancamentos_couvert')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao excluir");
+    return;
+  }
+
+  carregarRegistros();
+}
 
     filtroStatus.addEventListener('change', carregarRegistros);
     filtroEmpresa.addEventListener('change', carregarRegistros);
