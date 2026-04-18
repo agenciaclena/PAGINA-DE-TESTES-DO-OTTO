@@ -207,7 +207,36 @@ form.addEventListener('submit', async (e) => {
   loading.style.display = 'flex';
 
   const dados = Object.fromEntries(new FormData(form));
+const nome = dados.profissional.trim().toUpperCase();
 
+// 1. Verifica se já existe
+const { data: existente } = await supabaseClient
+  .from('colaboradores')
+  .select('id')
+  .ilike('nome', nome)
+  .limit(1);
+
+// 2. Se NÃO existir → cria
+if (!existente || existente.length === 0) {
+
+  const { error: erroColab } = await supabaseClient
+    .from('colaboradores')
+    .insert([{
+      nome: nome,
+      funcao: dados.funcao,
+      pix: dados.dadosPix,
+      titular: dados.titularConta,
+      valor: parseFloat(dados.valorAcordado) || 0,
+      cpf: dados.cpf
+    }]);
+
+  if (erroColab) {
+    console.error("Erro ao salvar colaborador:", erroColab);
+  } else {
+    // atualiza lista automaticamente
+    carregarColaboradores();
+  }
+}
   const { error } = await supabaseClient
     .from('lancamentos_couvert')
     .insert([{
