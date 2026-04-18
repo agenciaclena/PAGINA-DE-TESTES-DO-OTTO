@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Buffet • Mercatto Delícia</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --primary-dark:#ea580c;
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --radius:14px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+*{
+  box-sizing:border-box;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  background:var(--bg);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+/* ================= APP ================= */
+
+.app{
+  max-width:1500px;
+  margin:0 auto;
+  padding:20px;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ================= HEADER ================= */
+
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+
+.title{
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-0.5px;
+}
+
+.badge{
+  background:#111827;
+  color:#fff;
+  padding:7px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+}
+
+/* ================= CARD ================= */
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:16px;
+}
+
+/* ================= EMPRESA ================= */
+
+.company-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.company-row select{
+  width:300px;
+}
+
+/* ================= FORM GRID ================= */
+
+.form-grid{
+  display:grid;
+  grid-template-columns: 2.8fr 1.8fr 1.4fr 1.4fr;
+  gap:16px;
+  align-items:end;
+}
+
+/* ================= FIELD ================= */
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.field label{
+  font-size:11px;
+  font-weight:800;
+  color:#374151;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+}
+
+/* ================= INPUTS ================= */
+
+input, select{
+  height:44px;
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:14px;
+  background:#fff;
+  transition:all .2s ease;
+}
+
+input:focus, select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,106,0,.12);
+  outline:none;
+}
+
+/* ================= INLINE QUANTIDADE + UNIDADE ================= */
+
+.inline-group .inline-input{
+  display:flex;
+  width:100%;
+}
+
+.inline-group input{
+  flex:1;
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
+}
+
+.inline-group select{
+  width:85px;
+  border-left:none;
+  border-top-left-radius:0;
+  border-bottom-left-radius:0;
+  background:#f9fafb;
+  font-weight:700;
+}
+
+/* ================= PREVIEW LIQUIDO ================= */
+
+.net-preview{
+  font-size:12px;
+  margin-top:4px;
+  color:#6b7280;
+}
+
+/* ================= BOTÕES ================= */
+
+button{
+  height:44px;
+  padding:0 18px;
+  border-radius:10px;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+button.primary{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+}
+
+button.primary:hover{
+  background:var(--primary-dark);
+}
+
+button.ghost{
+  background:#fff;
+  border:1px solid var(--border);
+}
+
+/* ================= LISTA ================= */
+
+.list{
+  flex:1;
+  overflow:auto;
+  display:grid;
+  gap:12px;
+  padding-right:4px;
+}
+
+.item{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:14px;
+  padding:16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#fff;
+  align-items:center;
+  transition:.15s;
+}
+
+.item:hover{
+  box-shadow:0 6px 18px rgba(0,0,0,.05);
+}
+
+.item .name{
+  font-weight:900;
+  font-size:15px;
+}
+
+.meta{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.tag{
+  padding:7px 14px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+}
+
+/* ================= TAG CORES ================= */
+
+.MONTAGEM{background:#dcfce7;color:#166534}
+.REPOSICAO{background:#e0f2fe;color:#075985}
+.RETIRADA{background:#fee2e2;color:#991b1b}
+.DEVOLUCAO{background:#fef3c7;color:#92400e}
+.CONSUMO{background:#ede9fe;color:#5b21b6}
+
+/* ================= ICON BUTTON ================= */
+
+.icon-btn{
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius:10px;
+  padding:6px 9px;
+  transition:.2s;
+}
+
+.icon-btn:hover{
+  background:#f9fafb;
+}
+
+.icon-btn.danger{
+  border-color:#fecaca;
+  color:#b91c1c;
+}
+
+/* ================= MODAL ================= */
+
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.modal{
+  width:480px;
+  background:#fff;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
+}
+
+.modal .grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.modal .actions{
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+}
+
+/* ================= RESPONSIVO TABLET ================= */
+
+@media(max-width:1200px){
+  .form-grid{
+    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+  }
+}
+
+/* ================= RESPONSIVO CELULAR ================= */
+
+@media(max-width:768px){
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .company-row{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .company-row select{
+    width:100%;
+  }
+
+  button{
+    width:100%;
+  }
+
+  .item{
+    grid-template-columns:1fr;
+  }
+
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="title">🍽️ Buffet • Mercatto Delícia</div>
+    <span class="badge">Hoje: <b id="dataHoje"></b></span>
+  </div>
+
+  <!-- Seleção de empresa -->
+  <div class="card company-row">
+    <b>Empresa:</b>
+    <select id="empresaSelect">
+      <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+    </select>
+  </div>
+
+  <div class="card">
+<div class="form-grid tablet-row">
+  <div class="field">
+    <label>Prato</label>
+    <input id="produto" placeholder="Digite o prato (busca + cadastra + consumo)" list="produtosList">
+  </div>
+
+<!-- QUANTIDADE + UNIDADE JUNTOS -->
+<div class="field inline-group">
+  <label id="labelPeso">Peso bruto (kg)</label>
+  <div class="inline-input">
+    <input id="quantidade" class="input-weight" inputmode="decimal" placeholder="0,000">
+    <select id="unidade">
+      <option value="KG">KG</option>
+      <option value="UN">UN</option>
+    </select>
+  </div>
+</div>
+
+<!-- TARA -->
+<div class="field">
+  <label id="labelTara">Tara (kg)</label>
+  <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
+  <div class="net-preview" id="pesoLiquidoPreview">
+    Líquido: <b>0,000 kg</b>
+  </div>
+</div>
+
+<!-- TIPO -->
+<div class="field">
+  <label>Tipo</label>
+  <select id="tipo">
+    <option value="MONTAGEM">Montagem</option>
+    <option value="REPOSICAO">Reposição</option>
+    <option value="RETIRADA">Retirada</option>
+    <option value="DEVOLUCAO">Desperdício</option>
+    <option value="MONTAGEM">Consumo Funcionários</option>
+  </select>
+</div>
+
+<div class="field" style="display:none">
+  <label style="display:flex;gap:8px;align-items:center">
+    <input type="checkbox" id="consumoAutorizado" hidden>
+    Consumo autorizado
+  </label>
+</div>
+</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
+      <button class="ghost" id="btnLimpar"><i class="ri-eraser-line"></i> Limpar</button>
+    </div>
+    <small>Data é travada no dia atual e hora é automática.</small>
+  </div>
+
+  <div class="card">
+    <b>📋 Lançamentos de Hoje</b>
+    <div class="list" id="lista"></div>
+  </div>
+
+</div>
+
+<datalist id="produtosList"></datalist>
+
+<!-- MODAL DE EDIÇÃO -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>✏️ Editar lançamento</h3>
+    <div class="grid">
+      <input id="editQuantidade" type="number" step="0.001" placeholder="Quantidade">
+      <select id="editUnidade">
+        <option value="KG">KG</option>
+        <option value="UN">UN</option>
+      </select>
+      <select id="editTipo" style="grid-column:1/-1">
+        <option value="MONTAGEM">Montagem</option>
+        <option value="REPOSICAO">Reposição</option>
+        <option value="RETIRADA">Retirada</option>
+        <option value="DEVOLUCAO">Desperdício</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="primary" onclick="confirmarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL CONSUMO AUTORIZADO -->
+<div class="modal-backdrop" id="modalConsumo">
+  <div class="modal">
+<h3 id="tituloModalConsumo">Para quem é o consumo?</h3>
+    <input id="consumoNome" list="consumidoresList" placeholder="Digite o nome">
+    <datalist id="consumidoresList"></datalist>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharConsumo()">Cancelar</button>
+      <button class="primary" onclick="confirmarConsumo()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const sb = window.supabase.createClient(
+    "https://dxkszikemntfusfyrzos.supabase.co",
+    "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+  );
+
+  const produtoInput = document.getElementById("produto");
+  const quantidadeInput = document.getElementById("quantidade");
+  const taraInput = document.getElementById("tara");
+  const unidadeSelect = document.getElementById("unidade");
+  /* ================= AJUSTE VISUAL POR UNIDADE ================= */
+
+unidadeSelect.addEventListener("change", () => {
+
+  const unidade = unidadeSelect.value;
+
+  const labelPeso = document.getElementById("labelPeso");
+  const labelTara = document.getElementById("labelTara");
+
+  if(unidade === "UN"){
+
+    labelPeso.innerText = "Quantidade (un)";
+    labelTara.innerText = "Tara (un)";
+
+    quantidadeInput.value = "";
+    taraInput.value = "";
+
+  } else {
+
+    labelPeso.innerText = "Peso bruto (kg)";
+    labelTara.innerText = "Tara (kg)";
+
+    quantidadeInput.value = "";
+    taraInput.value = "";
+  }
+
+  atualizarLiquidoPreview();
+});
+  const tipoSelect = document.getElementById("tipo");
+  const lista = document.getElementById("lista");
+  const btnSalvar = document.getElementById("btnSalvar");
+  const btnLimpar = document.getElementById("btnLimpar");
+const empresaSelect = document.getElementById("empresaSelect");
+  let salvandoAgora = false;
+const consumoAutorizado = document.getElementById("consumoAutorizado");
+
+// 🔒 nunca mostrar a flag na tela
+consumoAutorizado.closest(".field").style.display = "none";
+
+produtoInput.addEventListener("input", () => {
+  const nome = produtoInput.value.trim().toUpperCase();
+
+  if (nome === "CONSUMO AUTORIZADO") {
+    consumoAutorizado.checked = true;   // marca internamente
+  } else {
+    consumoAutorizado.checked = false;  // limpa quando não for consumo autorizado
+  }
+});
+btnSalvar.onclick = () => {
+  if (salvandoAgora) return;
+  salvandoAgora = true;
+
+  const nomePrato = produtoInput.value.trim().toUpperCase();
+// 🔥 NOVO: se for RETIRADA, perguntar destino antes de salvar
+if (tipoSelect.value === "RETIRADA") {
+  modoModal = "RETIRADA";     // 👈 marca que é retirada para setor/local
+  abrirConsumo();
+  salvandoAgora = false;
+  return;
+}
+if (nomePrato === "CONSUMO AUTORIZADO") {
+  modoModal = "CONSUMO";      // 👈 marca que é consumo de alguém
+  abrirConsumo();
+  consumoAutorizado.checked = true;
+  salvandoAgora = false;
+  return;
+}
+
+if (consumoAutorizado.checked) {
+  modoModal = "CONSUMO";
+  abrirConsumo();
+  salvandoAgora = false;
+}
+else {
+    salvar(null).finally(() => salvandoAgora = false);
+  }
+};
+btnLimpar.onclick = limpar;
+// ================== CONFIGURAÇÕES DE TARA POR TIPO ==================
+const TARA_REPOSICAO = 0.280;
+
+// restaura último tipo selecionado
+const tipoSalvo = localStorage.getItem("buffet_tipo_selecionado");
+if (tipoSalvo) {
+  tipoSelect.value = tipoSalvo;
+}
+// aplica tara 0,280 ao abrir se último tipo foi reposição
+if (tipoSelect.value === "REPOSICAO") {
+  taraInput.value = formatPeso(0.280);
+  atualizarLiquidoPreview();
+}
+// aplica tara automática quando muda o tipo
+tipoSelect.addEventListener("change", () => {
+  const tipo = tipoSelect.value;
+
+  // salva o tipo no navegador
+  localStorage.setItem("buffet_tipo_selecionado", tipo);
+
+  // se for reposição, força tara 0,280 (mas deixa editar)
+  if (tipo === "REPOSICAO") {
+    taraInput.value = formatPeso(TARA_REPOSICAO);
+    atualizarLiquidoPreview();
+  }
+});
+
+
+  
+// ================== TARA PADRÃO POR PRODUTO ==================
+produtoInput.addEventListener("input", onProdutoInput);
+produtoInput.addEventListener("change", onProdutoChange);
+produtoInput.addEventListener("blur", onProdutoChange);
+
+async function aplicarTaraPadraoPorProduto(){
+  const empresa = empresaSelect.value;
+  const nome = produtoInput.value.trim().toUpperCase();
+  const tipo = tipoSelect.value;
+
+  if(!nome) return;
+
+  // 👉 se for REPOSIÇÃO, NÃO altera a tara do produto
+  if (tipo === "REPOSICAO") {
+    return;
+  }
+
+  // 1️⃣ tenta buscar a ÚLTIMA tara usada nos lançamentos
+  const { data:ultimoLanc } = await sb
+    .from("buffet_lancamentos")
+    .select("tara")
+    .eq("empresa", empresa)
+    .eq("produto_nome", nome)
+    .not("tara", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (ultimoLanc?.tara != null && Number(ultimoLanc.tara) > 0) {
+    taraInput.value = formatPeso(ultimoLanc.tara);
+    atualizarLiquidoPreview();
+    return;
+  }
+
+  // 2️⃣ fallback: busca tara padrão do produto
+  const { data:prod } = await sb
+    .from("buffet_produtos")
+    .select("tara_padrao")
+    .eq("empresa", empresa)
+    .eq("nome", nome)
+    .maybeSingle();
+
+  if(prod?.tara_padrao != null && Number(prod.tara_padrao) > 0){
+    taraInput.value = formatPeso(prod.tara_padrao);
+    atualizarLiquidoPreview();
+  }
+}
+  const hoje = new Date();
+  const dataISO = hoje.toISOString().slice(0,10);
+  const dataBR = hoje.toLocaleDateString("pt-BR");
+  document.getElementById("dataHoje").innerText = dataBR;
+
+  let editId = null;
+
+
+function onProdutoInput(){
+  const nome = produtoInput.value.trim();
+
+  // se apagar o nome do prato, limpa tara
+  if(!nome){
+    taraInput.value = "";
+    atualizarLiquidoPreview();
+    return;
+  }
+}
+
+function onProdutoChange(){
+  const nome = produtoInput.value.trim();
+
+  if(!nome){
+    taraInput.value = "";
+    atualizarLiquidoPreview();
+    return;
+  }
+
+  aplicarTaraPadraoPorProduto();
+}
+
+
+
+
+
+  
+  async function carregarProdutos(){
+    const empresa = empresaSelect.value;
+    const { data } = await sb
+      .from("buffet_produtos")
+      .select("nome")
+      .eq("empresa", empresa)
+      .order("nome");
+
+    const list = document.getElementById("produtosList");
+    list.innerHTML = "";
+    data?.forEach(p=>{
+      const o = document.createElement("option");
+      o.value = p.nome;
+      list.appendChild(o);
+    });
+  }
+
+async function carregarLancamentos(){
+  const empresa = empresaSelect.value;
+  const { data, error } = await sb
+    .from("buffet_lancamentos")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("data", dataISO)
+    .order("created_at", { ascending:false });
+
+  if(error){
+    console.error("Erro ao carregar lançamentos:", error);
+  }
+
+  lista.innerHTML = "";
+  (data || []).forEach(l=>{
+lista.innerHTML += `
+  <div class="item" style="padding:14px 14px 16px">
+    <div>
+
+      <!-- TÍTULO -->
+      <div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
+        <span>${l.produto_nome}</span>
+
+        ${
+(l.consumo_para_nome && l.tipo === "RETIRADA") ||
+(l.consumo_autorizado && l.consumo_para_nome)
+          ? `<span style="
+                background:#ede9fe;
+                color:#5b21b6;
+                padding:6px 12px;
+                border-radius:999px;
+                font-size:12px;
+                font-weight:800;
+                display:inline-flex;
+                align-items:center;
+                gap:6px;
+                line-height:1;
+              ">
+                👤 ${l.consumo_para_nome}
+              </span>`
+            : ``
+        }
+      </div>
+
+      <!-- META -->
+      <div class="meta" style="line-height:1.5; margin-bottom:8px">
+        Bruto: <b>${formatPeso((Number(l.quantidade) + Number(l.tara || 0)))} kg</b>
+        • Tara: <b>${formatPeso(l.tara || 0)} kg</b>
+        • Líquido: <b>${formatPeso(l.quantidade)} kg</b><br>
+        <span style="color:#6b7280">⏱ ${l.hora}</span>
+      </div>
+
+      <!-- TAG -->
+      ${
+        l.consumo_autorizado
+          ? `<span class="tag RETIRADA" style="padding:8px 14px;font-size:12px">CONSUMO AUTORIZADO</span>`
+          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">
+  ${l.tipo === "DEVOLUCAO" ? "DESPERDÍCIO" : l.tipo}
+</span>`
+      }
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
+        <i class="ri-edit-2-line"></i>
+      </button>
+      <button class="icon-btn danger" onclick="excluir('${l.id}')">
+        <i class="ri-delete-bin-6-line"></i>
+      </button>
+    </div>
+  </div>
+`;
+    });
+  }
+
+async function salvar(consumoPara){
+  try{
+    showSaving(); // 👈 abre overlay
+
+    const empresa = empresaSelect.value;
+    const produtoNome = produtoInput.value.trim().toUpperCase();
+const pesoBruto = unidadeSelect.value === "UN"
+  ? parseInt(quantidadeInput.value || 0)
+  : parsePeso(quantidadeInput.value);
+const tara = unidadeSelect.value === "UN"
+  ? parseInt(taraInput.value || 0)
+  : parsePeso(taraInput.value || 0);
+    const unidade = unidadeSelect.value;
+let tipo = tipoSelect.value;
+
+// 🔒 se for consumo autorizado, salva como RETIRADA e marca flag
+if (produtoNome === "CONSUMO AUTORIZADO") {
+  tipo = "RETIRADA";
+}
+
+// ⛔ bloqueia qualquer tentativa de salvar CONSUMO fora do fluxo correto
+if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
+  alert("Tipo CONSUMO é reservado apenas para CONSUMO AUTORIZADO.");
+  hideSaving();
+  return;
+}
+    if(!produtoNome || pesoBruto <= 0){
+      alert("Preencha tudo");
+      hideSaving();
+      return;
+    }
+    if(tara > pesoBruto){
+      alert("Tara não pode ser maior que o peso bruto");
+      hideSaving();
+      return;
+    }
+
+    const quantidadeLiquida = Number((pesoBruto - tara).toFixed(3));
+
+    let { data:prod } = await sb
+      .from("buffet_produtos")
+      .select("*")
+      .eq("empresa", empresa)
+      .eq("nome", produtoNome)
+      .maybeSingle();
+
+    if(!prod){
+      const { data:nova } = await sb
+        .from("buffet_produtos")
+        .insert({ empresa, nome: produtoNome, unidade_padrao: unidade, tara_padrao: tara })
+        .select().single();
+      prod = nova;
+      carregarProdutos();
+    }
+
+    const hora = new Date().toTimeString().slice(0,8);
+
+const payload = {
+  empresa: String(empresaSelect.value),
+  produto_id: String(prod.id),
+  produto_nome: String(produtoNome),
+  tipo: String(tipo),
+  quantidade: Number(quantidadeLiquida),
+  unidade: String(unidade),
+  data: String(dataISO),
+  hora: String(hora),
+  tara: tara != null ? Number(tara) : 0,
+consumo_autorizado:
+  produtoNome === "CONSUMO AUTORIZADO",
+consumo_para_nome:
+  produtoNome === "CONSUMO AUTORIZADO"
+    ? String(consumoPara)
+    : tipo === "RETIRADA"
+      ? String(consumoPara)
+      : null
+};
+
+const { error: insertError } = await sb
+  .from("buffet_lancamentos")
+  .insert(payload);
+
+if (insertError) {
+  console.error("ERRO INSERT buffet_lancamentos:", insertError);
+  alert("Erro ao salvar: " + insertError.message);
+  hideSaving();
+  return;
+}
+
+    const { data:ultimas } = await sb
+      .from("buffet_lancamentos")
+      .select("tara")
+      .eq("produto_id", prod.id)
+      .not("tara", "is", null)
+      .order("created_at", { ascending:false })
+      .limit(3);
+
+// só atualiza tara padrão se NÃO for reposição
+if(ultimas?.length && tipo !== "REPOSICAO" && tipo !== "CONSUMO"){
+  const maisUsada = ultimas
+    .map(x => Number(x.tara || 0))
+    .sort((a,b) =>
+      ultimas.filter(u=>u.tara===a).length -
+      ultimas.filter(u=>u.tara===b).length
+    )
+    .pop();
+
+  await sb.from("buffet_produtos")
+    .update({ tara_padrao: maisUsada })
+    .eq("id", prod.id);
+}
+
+    limpar();
+    carregarLancamentos();
+
+  } catch(err){
+    console.error(err);
+    alert("Erro ao salvar. Verifique a internet.");
+  } finally {
+    hideSaving(); // 👈 fecha overlay sempre
+  }
+}
+
+
+function showSaving(){
+  document.getElementById("savingOverlay").style.display = "flex";
+}
+function hideSaving(){
+  document.getElementById("savingOverlay").style.display = "none";
+}
+function abrirModal(id, qtd, un, tipo){
+  editId = id;
+  document.getElementById("editQuantidade").value = qtd;
+  document.getElementById("editUnidade").value = un;
+
+  const editTipo = document.getElementById("editTipo");
+
+if (tipo === "CONSUMO") {
+  editTipo.value = "MONTAGEM";     
+  editTipo.disabled = true;       
+
+  document.getElementById("editUnidade").disabled = true; // 🔒 trava unidade
+} else {
+  editTipo.value = tipo;
+  editTipo.disabled = false;
+  document.getElementById("editUnidade").disabled = false;
+}
+
+  document.getElementById("modalBackdrop").style.display = "flex";
+}
+function fecharModal(){
+  document.getElementById("modalBackdrop").style.display = "none";
+  document.getElementById("editTipo").disabled = false;    // 🔓 destrava tipo
+  document.getElementById("editUnidade").disabled = false; // 🔓 destrava unidade
+  editId = null;
+}
+async function confirmarEdicao(){
+  const qtd = parseFloat(document.getElementById("editQuantidade").value);
+  const un = document.getElementById("editUnidade").value;
+  const tipo = document.getElementById("editTipo").value;
+
+  if(!qtd){ alert("Quantidade inválida"); return; }
+
+  // 🔒 não permite alterar tipo de um CONSUMO
+  const { data:atual } = await sb
+    .from("buffet_lancamentos")
+    .select("tipo, produto_nome")
+    .eq("id", editId)
+    .maybeSingle();
+
+  if (atual?.tipo === "CONSUMO" && tipo !== "CONSUMO") {
+    alert("Lançamentos de CONSUMO não podem ter o tipo alterado.");
+    return;
+  }
+
+  await sb.from("buffet_lancamentos")
+    .update({ quantidade:qtd, unidade:un, tipo })
+    .eq("id", editId);
+
+  fecharModal(); 
+  carregarLancamentos();
+}
+
+  async function excluir(id){
+    if(!confirm("Excluir esse lançamento?")) return;
+    await sb.from("buffet_lancamentos").delete().eq("id", id);
+    carregarLancamentos();
+  }
+
+function limpar(){
+  produtoInput.value = "";
+  quantidadeInput.value = "";
+  taraInput.value = "";
+  unidadeSelect.value = "KG";
+  consumoAutorizado.checked = false; // 🔒 limpa flag interna de consumo
+
+  // mantém o último tipo selecionado
+  const tipoSalvo = localStorage.getItem("buffet_tipo_selecionado");
+  tipoSelect.value = tipoSalvo || "MONTAGEM";
+
+  // se for reposição, reaplica tara 0,280
+  if (tipoSelect.value === "REPOSICAO") {
+    taraInput.value = formatPeso(0.280);
+  }
+
+  atualizarLiquidoPreview();
+}
+  carregarProdutos();
+  carregarLancamentos();
+
+
+function parsePeso(v){
+  if(!v) return 0;
+  return Number(String(v).replace(",", ".").replace(/[^\d.]/g, ""));
+}
+
+function formatPeso(v){
+  return (Number(v || 0).toFixed(3)).replace(".", ",");
+}
+
+function atualizarLiquidoPreview(){
+
+  const unidade = unidadeSelect.value;
+
+  if(unidade === "UN"){
+    const bruto = parseInt(quantidadeInput.value || 0);
+    const tara = parseInt(taraInput.value || 0);
+    const liquido = Math.max(0, bruto - tara);
+
+    document.getElementById("pesoLiquidoPreview").innerHTML =
+      `Líquido: <b>${liquido} un</b>`;
+  }
+  else{
+    const bruto = parsePeso(quantidadeInput.value);
+    const tara = parsePeso(taraInput.value);
+    const liquido = Math.max(0, bruto - tara);
+
+    document.getElementById("pesoLiquidoPreview").innerHTML =
+      `Líquido: <b>${formatPeso(liquido)} kg</b>`;
+  }
+}
+
+function aplicarMascaraKg(input){
+  let v = input.value || "";
+
+  // mantém só números
+  v = v.replace(/\D/g, "");
+
+  // garante 3 casas decimais
+  if(v.length === 0) v = "000";
+  if(v.length === 1) v = "00" + v;
+  if(v.length === 2) v = "0" + v;
+
+  const inteiro = v.slice(0, -3);
+  const dec = v.slice(-3);
+
+  input.value = (Number(inteiro) || 0) + "," + dec;
+}
+
+quantidadeInput.addEventListener("input", () => {
+
+  if(unidadeSelect.value === "KG"){
+    aplicarMascaraKg(quantidadeInput);
+  }
+
+  atualizarLiquidoPreview();
+});
+
+taraInput.addEventListener("input", () => {
+
+  if(unidadeSelect.value === "KG"){
+    aplicarMascaraKg(taraInput);
+  }
+
+  atualizarLiquidoPreview();
+});
+
+
+function abrirConsumo(){
+  const titulo = document.getElementById("tituloModalConsumo");
+
+  if (modoModal === "RETIRADA") {
+    titulo.innerText = "Para onde vai a retirada?";
+  } else {
+    titulo.innerText = "Para quem é o consumo?";
+  }
+
+  document.getElementById("modalConsumo").style.display = "flex";
+  document.body.style.overflow = "hidden";
+  carregarConsumidores();
+}
+
+function fecharConsumo(){
+  document.getElementById("modalConsumo").style.display = "none";
+  document.body.style.overflow = "auto";
+  document.getElementById("consumoNome").value = ""; // limpa campo
+}
+
+async function carregarConsumidores(){
+  const empresa = empresaSelect.value;
+
+  const { data } = await sb
+    .from("buffet_consumidores")
+    .select("nome")
+    .eq("empresa", empresa)
+    .order("nome");
+
+  const list = document.getElementById("consumidoresList");
+  list.innerHTML = "";
+  data?.forEach(p=>{
+    const o = document.createElement("option");
+    o.value = p.nome;
+    list.appendChild(o);
+  });
+}
+
+async function confirmarConsumo(){
+  const nome = document.getElementById("consumoNome").value.trim().toUpperCase();
+  if(!nome) return alert("Informe o nome");
+
+  const empresa = empresaSelect.value;
+
+  const { data:exist } = await sb
+    .from("buffet_consumidores")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("nome", nome)
+    .maybeSingle();
+
+  if(!exist){
+    await sb.from("buffet_consumidores").insert({ empresa, nome });
+  }
+
+  fecharConsumo();
+  salvar(nome);
+}
+</script>
+<!-- OVERLAY DE SALVAMENTO -->
+<div id="savingOverlay" style="
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(15,23,42,.55);
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter: blur(2px);
+">
+  <div style="
+    background:#fff; padding:22px 26px; border-radius:16px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.25)
+  ">
+    <i class="ri-loader-4-line" style="
+      font-size:26px; color:#ff6a00; animation:spin 1s linear infinite
+    "></i>
+    <b>Salvando...</b>
+  </div>
+</div>
+</body>
+</html>

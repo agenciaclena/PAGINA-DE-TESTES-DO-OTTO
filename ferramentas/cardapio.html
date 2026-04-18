@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cardápio Premium">
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cardápio Digital • Premium</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#0b0b0c; --card:#111113; --text:#ffffff; --muted:#a1a1aa;
+  --gold:#d4af37; --gold-soft:rgba(212,175,55,.25);
+  --border:#1f1f22; --radius:18px; --shadow:0 20px 60px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:Inter,system-ui; color:#fff;
+  background:linear-gradient(180deg,#000 0%, #0b0b0c 40%, #000 100%);
+  overflow-y:scroll;
+}
+body::-webkit-scrollbar{width:0;height:0}
+.top{position:sticky;top:0;z-index:10;padding:14px;background:linear-gradient(180deg,rgba(0,0,0,.9),rgba(0,0,0,.6) 60%,transparent);backdrop-filter:blur(8px)}
+.search{width:100%;height:48px;border-radius:999px;border:1px solid var(--border);background:#0f0f12;color:#fff;padding:0 18px;font-weight:700}
+.cats{display:flex;gap:10px;margin-top:10px;overflow-x:auto}
+.cats::-webkit-scrollbar{height:0}
+.cat{padding:10px 14px;border-radius:999px;border:1px solid var(--border);background:#0f0f12;color:#fff;font-weight:800;font-size:12px;cursor:pointer}
+.cat.active,.cat:hover{border-color:var(--gold);color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px 12px 80px}
+.card{
+  background:#0f0f12;
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+  cursor:pointer;
+  min-height: 340px;   /* 👈 AQUI você aumenta a altura do card */
+}
+.thumb{
+  width:100%;
+  height: 340px;      /* 👈 aumenta para caber a garrafa inteira */
+  object-fit:contain; /* 👈 não corta a imagem */
+  background:#000;    /* fundo preto para não ficar feio */
+}
+/* ===== AJUSTE DE ALTURA PARA TABLET ===== */
+@media (min-width: 700px){
+  .thumb{ height: 420px; }     /* 👈 imagem maior no tablet */
+  .card{ min-height: 520px; } /* 👈 card acompanha a imagem */
+}
+.body{padding:12px}
+.name{font-weight:900;font-size:14px}
+.desc{font-size:12px;color:#9ca3af;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.price{margin-top:6px;font-weight:900;color:var(--gold)}
+
+
+
+
+  
+.modal{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.65);
+  backdrop-filter: blur(8px);
+  display:none; align-items:flex-end; justify-content:center;
+  z-index:100;
+}
+.modal.open{display:flex}
+
+.modal-box{
+  width:100%; max-width:760px;
+  height:92vh;
+  background:linear-gradient(180deg,#0a0a0a,#000);
+  border-radius:28px 28px 0 0;
+  overflow:hidden;
+  box-shadow:0 -30px 80px rgba(0,0,0,.8);
+  animation:up .35s cubic-bezier(.16,1,.3,1);
+}
+
+.modal-img{
+  width:100%;
+  height:58vh;
+  object-fit:contain;
+  background:radial-gradient(circle at top, #111 0%, #000 70%);
+ box-shadow: inset 0 -120px 120px rgba(0,0,0,.85);
+
+}
+
+.modal-overlay{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 45%, rgba(0,0,0,.95) 90%);
+}
+
+.modal-body{
+  position:relative;
+  padding:22px 22px 28px;
+  margin-top:-90px;
+  backdrop-filter: blur(6px);
+}
+
+.modal-title{
+  font-size:26px;
+  font-weight:900;
+  letter-spacing:.3px;
+}
+
+.modal-desc{
+  margin-top:10px;
+  color:#cbd5f5;
+  line-height:1.55;
+  font-size:14px;
+  opacity:.95;
+}
+
+.modal-price{
+  margin-top:16px;
+  font-size:28px;
+  font-weight:900;
+  color:var(--gold);
+  text-shadow:0 6px 20px rgba(212,175,55,.25);
+}
+
+.close{
+  position:absolute;
+  right:14px;
+  top:14px;
+  width:36px; height:36px;
+  display:grid; place-items:center;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  backdrop-filter: blur(6px);
+  font-size:18px;
+  transition:.2s ease;
+}
+.close:hover{
+  background:rgba(255,255,255,.18);
+  transform:scale(1.05);
+}
+@keyframes up{
+  from{ transform:translateY(60px) scale(.98); opacity:0 }
+  to{ transform:none; opacity:1 }
+}
+
+
+
+  
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1024px){.grid{grid-template-columns:repeat(4,1fr)}}
+html, body {
+  overscroll-behavior: none;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+.subcats{
+  margin-top:8px;
+  padding-bottom:4px;
+  opacity:.9;
+}
+.cat.group{
+  border-style:dashed;
+  opacity:.9;
+}
+.cat.back{
+  background:transparent;
+  border-color:transparent;
+  color:var(--muted);
+}
+.modal-body::before{
+  content:"";
+  position:absolute;
+  top:-14px; left:22px; right:22px;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(212,175,55,.6), transparent);
+  opacity:.6;
+}
+/* PROMOÇÕES */
+.promo-wrap{
+  padding:14px 12px 4px;
+}
+
+.promo-card{
+  background:linear-gradient(180deg,#0f0f12,#000);
+  border:1px solid var(--gold-soft);
+  border-radius:28px;
+  padding:14px;
+  box-shadow:0 25px 80px rgba(212,175,55,.08);
+}
+
+.promo-title{
+  font-weight:900;
+  letter-spacing:1px;
+  color:var(--gold);
+  margin-bottom:10px;
+}
+
+.promo-slider{
+  position:relative;
+  width:100%;
+  height:280px;   /* 👈 É AQUI que você aumenta */
+  overflow:hidden;
+  border-radius:22px;
+  border:1px solid #1f1f22;
+  background:#000;
+}
+
+.promo-item{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  transition:.6s ease;
+}
+
+.promo-item.active{ opacity:1 }
+
+.promo-item img,
+.promo-item video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:22px;
+}
+
+.promo-dots{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-top:10px;
+}
+
+.promo-dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:#333;
+}
+
+.promo-dot.active{
+  background:var(--gold);
+}
+html, body {
+  overscroll-behavior: none;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+  <input id="search" class="search" placeholder="Buscar no cardápio..." />
+  <div id="cats" class="cats"></div>
+  <div id="subcats" class="cats subcats" style="display:none"></div>
+</div>
+<!-- PROMOÇÕES DO DIA -->
+<div id="promoWrap" class="promo-wrap" style="display:none">
+  <div class="promo-card">
+    <div class="promo-title">Destaques do dia</div>
+
+    <div class="promo-slider" id="promoSlider"></div>
+
+    <div class="promo-dots" id="promoDots"></div>
+  </div>
+</div>
+
+<div id="grid" class="grid"></div>
+
+<div id="modal" class="modal" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <span class="close" onclick="closeModal()">✕</span>
+    <div style="position:relative">
+      <img id="mImg" class="modal-img" />
+      <div class="modal-overlay"></div>
+    </div>
+    <div class="modal-body">
+      <div id="mName" class="modal-title"></div>
+      <div id="mDesc" class="modal-desc"></div>
+      <div id="mPrice" class="modal-price"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Seu JS original (sem mudanças de lógica) */
+const sb = supabase.createClient("https://dxkszikemntfusfyrzos.supabase.co","sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed");
+const GROUPS = [
+  { key: "", label: "TODOS" },
+
+  { key: "BEBIDAS", label: "BEBIDAS", sub: [
+    { key: "DRINK", label: "DRINKS" },
+    { key: "VINHO", label: "VINHOS" },
+    { key: "ESPUMANTE", label: "ESPUMANTES" },
+    { key: "WHISKY", label: "WHISKY" },
+    { key: "GIN", label: "GIN" },
+    { key: "VODKA", label: "VODKA" },
+    { key: "TEQUILA", label: "TEQUILA" },
+    { key: "LICOR", label: "LICOR" },
+    { key: "CAMPARI", label: "CAMPARI" }
+  ]},
+
+  { key: "COMIDAS", label: "COMIDAS", sub: [
+    { key: "SUSHI", label: "SUSHI" }
+  ]}
+];
+
+let page=0, PAGE_SIZE=10, catAtiva="", termo="", carregando=false, fimLista=false;
+let grupoAberto = null;
+
+const idsCarregados=new Set();
+const grid=document.getElementById("grid");
+const cats=document.getElementById("cats");
+const subcats=document.getElementById("subcats");
+
+const moeda=v=>"R$ "+Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+
+
+
+const promoWrap = document.getElementById("promoWrap");
+const promoSlider = document.getElementById("promoSlider");
+const promoDots = document.getElementById("promoDots");
+
+let promoIndex = 0;
+let promos = [];
+let promoTimer = null;
+async function loadPromos(){
+  const agora = new Date();
+  const dia = ((agora.getDay() + 6) % 7) + 1; // 1=Seg ... 7=Dom
+  const hora = agora.toTimeString().slice(0,5); // HH:MM
+
+  const { data, error } = await sb
+    .from("promocoes")
+    .select("url,tipo,ativo,dias_semana,hora_inicio,hora_fim")
+    .eq("ativo", true)
+    .order("created_at", { ascending:false });
+
+  if(error){ console.error(error); return; }
+
+  const filtradas = (data || []).filter(p =>
+    (p.dias_semana || []).includes(dia) &&
+    hora >= p.hora_inicio &&
+    hora <= p.hora_fim
+  );
+
+  if(!filtradas.length){
+    promoWrap.style.display = "none";
+    return;
+  }
+promos = filtradas;
+promoIndex = 0;
+
+promoSlider.innerHTML = promos.map((p,i)=>`
+  <div class="promo-item ${i===0?'active':''}">
+    ${
+      p.tipo === "VIDEO"
+        ? `<video src="${p.url}" autoplay muted loop playsinline></video>`
+        : `<img src="${p.url}">`
+    }
+  </div>
+`).join("");
+
+  startPromoLoop();
+}
+function startPromoLoop(){
+  clearInterval(promoTimer);
+
+  const items = document.querySelectorAll(".promo-item");
+
+  function showNext(){
+    promoIndex = (promoIndex + 1) % promos.length;
+
+    items.forEach((el,i)=>{
+      el.classList.toggle("active", i === promoIndex);
+    });
+
+    document.querySelectorAll(".promo-dot").forEach((el,i)=>{
+      el.classList.toggle("active", i === promoIndex);
+    });
+
+    playCurrent();
+  }
+
+  function playCurrent(){
+    const current = items[promoIndex];
+    const video = current.querySelector("video");
+
+    if(video){
+      video.currentTime = 0;
+      video.play();
+
+      video.onended = () => {
+        showNext();
+      };
+
+    } else {
+      promoTimer = setTimeout(showNext, 4000); // tempo da imagem
+    }
+  }
+
+  playCurrent();
+}
+
+
+
+
+  
+function renderCats(){
+  cats.innerHTML = GROUPS.map(g => {
+    if(!g.sub){
+      return `<button class="cat ${catAtiva===''?'active':''}" onclick="setCat('')">TODOS</button>`;
+    }
+    return `<button class="cat group ${grupoAberto===g.key?'active':''}" onclick="openGroup('${g.key}')">${g.label}</button>`;
+  }).join("");
+
+  if(!grupoAberto){
+    subcats.style.display = "none";
+    subcats.innerHTML = "";
+  }
+}
+
+function openGroup(k){
+  grupoAberto = grupoAberto === k ? null : k;
+  const group = GROUPS.find(g => g.key === grupoAberto);
+  if(!group){ subcats.style.display="none"; return; }
+
+  subcats.style.display = "flex";
+  subcats.innerHTML = `
+    <button class="cat back" onclick="closeGroup()">◀ Voltar</button>
+    ${group.sub.map(s => `
+      <button class="cat ${s.key===catAtiva?'active':''}" onclick="setCat('${s.key}')">${s.label}</button>
+    `).join("")}
+  `;
+  renderCats();
+}
+
+function closeGroup(){
+  grupoAberto = null;
+  subcats.style.display = "none";
+  subcats.innerHTML = "";
+  renderCats();
+}
+
+function setCat(k){
+  catAtiva = k;
+  page = 0;
+  fimLista = false;
+  idsCarregados.clear();
+  grid.innerHTML = "";
+
+  if(!k){
+    promoWrap.style.display = "block";
+    loadPromos();
+  }else{
+    promoWrap.style.display = "none";
+  }
+
+  renderCats();
+  loadMore();
+}
+
+function openModal(p){mImg.src=p.foto_url||"";mName.textContent=p.nome;mDesc.textContent=p.descricao||"";mPrice.textContent=moeda(p.preco_venda);modal.classList.add("open");}
+function closeModal(){modal.classList.remove("open");}
+
+async function loadMore(){
+  if(carregando||fimLista)return;carregando=true;
+let q=sb.from("buffet").select("id,nome,descricao,preco_venda,foto_url,tipo,ativo,cardapio").eq("ativo",true).eq("cardapio",true).order("created_at",{ascending:false}).range(page*PAGE_SIZE,page*PAGE_SIZE+PAGE_SIZE-1);  if(catAtiva)q=q.eq("tipo",catAtiva); if(termo)q=q.ilike("nome",`%${termo}%`);
+  const {data,error}=await q; carregando=false; if(error)return console.error(error);
+  if(!data||!data.length){fimLista=true;return;}
+  data.forEach(p=>{ if(idsCarregados.has(p.id))return; idsCarregados.add(p.id);
+    const d=document.createElement("div"); d.className="card"; d.onclick=()=>openModal(p);
+    d.innerHTML=`<img class="thumb" src="${p.foto_url||""}"><div class="body"><div class="name">${p.nome}</div><div class="desc">${p.descricao||""}</div><div class="price">${moeda(p.preco_venda)}</div></div>`;
+    grid.appendChild(d);
+  });
+  page++;
+}
+window.addEventListener("scroll",()=>{ if((innerHeight+scrollY)>=document.body.offsetHeight-600) loadMore();});
+search.oninput=()=>{ termo=search.value.trim(); page=0; fimLista=false; idsCarregados.clear(); grid.innerHTML=""; loadMore(); };
+setCat('');
+
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+</script>
+<script>
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.createElement("button");
+  btn.innerText = "📲 Instalar Cardápio";
+  btn.style.position = "fixed";
+  btn.style.bottom = "20px";
+  btn.style.right = "20px";
+  btn.style.padding = "14px 18px";
+  btn.style.background = "#000";
+  btn.style.color = "#fff";
+  btn.style.border = "1px solid #333";
+  btn.style.borderRadius = "14px";
+  btn.style.fontWeight = "700";
+  btn.style.letterSpacing = "1px";
+  btn.style.zIndex = "9999";
+  btn.style.boxShadow = "0 12px 40px rgba(0,0,0,.5)";
+
+  document.body.appendChild(btn);
+
+  btn.onclick = async () => {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    btn.remove();
+    deferredPrompt = null;
+  };
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const goFull = () => {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  };
+
+  // tenta entrar em fullscreen no primeiro toque
+  document.body.addEventListener("click", goFull, { once: true });
+});
+</script>
+<script>
+function requestFull(){
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+}
+
+document.addEventListener("click", () => {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    requestFull();
+  }
+});
+
+// se o usuário tentar sair do fullscreen, força voltar
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) {
+    setTimeout(requestFull, 300);
+  }
+});
+document.addEventListener("webkitfullscreenchange", () => {
+  if (!document.webkitFullscreenElement) {
+    setTimeout(requestFull, 300);
+  }
+});
+</script>
+<script>
+history.pushState(null, "", location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+</script>
+</body>
+</html>

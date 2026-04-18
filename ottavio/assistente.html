@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Assistente IA • Mercatto</title>
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+user-scalable=no">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+:root{
+--bg:#020617;
+--card:#0f172a;
+--user:#1e293b;
+--assistant:#22c55e;
+--text:#f1f5f9;
+--border:#334155;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Inter;
+background:var(--bg);
+color:var(--text);
+display:flex;
+flex-direction:column;
+height:100vh;
+}
+
+/* HEADER */
+
+.header{
+padding:16px;
+border-bottom:1px solid var(--border);
+font-weight:700;
+}
+
+/* CHAT */
+
+.messages{
+flex:1;
+overflow:auto;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:14px;
+}
+
+/* BOLHAS */
+
+.msg{
+max-width:70%;
+padding:14px;
+border-radius:14px;
+font-size:14px;
+line-height:1.5;
+white-space:pre-wrap;
+}
+
+.user{
+background:var(--user);
+align-self:flex-end;
+}
+
+.assistant{
+background:var(--assistant);
+align-self:flex-start;
+color:white;
+}
+
+/* LOADING */
+
+.loading{
+opacity:.6;
+font-style:italic;
+}
+
+/* INPUT */
+
+.send{
+display:flex;
+gap:10px;
+padding:14px;
+border-top:1px solid var(--border);
+}
+
+.send textarea{
+flex:1;
+resize:none;
+border-radius:10px;
+border:1px solid var(--border);
+background:var(--card);
+color:white;
+padding:10px;
+height:55px;
+font-family:Inter;
+}
+
+.send button{
+background:#22c55e;
+border:none;
+color:white;
+padding:10px 16px;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+}
+
+.send button:disabled{
+opacity:.5;
+cursor:not-allowed;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+Assistente IA (Simulação WhatsApp)
+</div>
+
+<div id="messages" class="messages"></div>
+
+<div class="send">
+<textarea id="input" placeholder="Pergunte como cliente..."></textarea>
+<button id="btnEnviar" onclick="enviar()">Enviar</button>
+</div>
+
+<script>
+
+const db = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+let pagina = 0
+const limite = 20
+let carregando = false
+let acabou = false
+
+
+const telefoneFake = localStorage.getItem("user") || "ADMIN"/* ENTER ENVIA */
+
+document.getElementById("input").addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !e.shiftKey){
+    e.preventDefault()
+    enviar()
+  }
+})
+
+/* SCROLL */
+
+function scrollBottom(){
+  const el = document.getElementById("messages")
+  el.scrollTop = el.scrollHeight
+}
+
+/* RENDER */
+
+function addMsg(text,role,loading=false){
+
+  const div = document.createElement("div")
+  div.className = "msg " + role
+
+  if(loading){
+    div.classList.add("loading")
+    div.innerText = "Digitando..."
+  }else{
+    div.innerText = text
+  }
+
+  document.getElementById("messages").appendChild(div)
+
+  scrollBottom()
+
+  return div
+}
+
+
+
+
+
+async function carregarMais(){
+
+  if(carregando || acabou) return
+
+  carregando = true
+
+  const from = pagina * limite
+  const to = from + limite - 1
+
+  const { data, error } = await db
+    .from("conversas_whatsapp")
+    .select("*")
+    .eq("telefone", telefoneFake)
+    .order("created_at",{ ascending:false })
+    .range(from, to)
+
+  if(error){
+    console.error(error)
+    carregando = false
+    return
+  }
+
+  if(!data || data.length === 0){
+    acabou = true
+    carregando = false
+    return
+  }
+
+  const container = document.getElementById("messages")
+
+  const scrollAtual = container.scrollHeight
+
+data.reverse().forEach(msg => {
+  const div = document.createElement("div")
+  div.className = "msg " + msg.role
+  div.innerText = msg.mensagem
+
+  container.prepend(div)
+})
+
+// 🔥 PRIMEIRA CARGA → vai pro final
+if(pagina === 0){
+  scrollBottom()
+}else{
+  // mantém posição ao carregar mais
+  container.scrollTop = container.scrollHeight - scrollAtual
+}
+
+pagina++
+carregando = false
+}
+
+
+
+
+
+
+
+
+
+  
+/* ENVIAR */
+
+async function enviar(){
+
+  const input = document.getElementById("input")
+  const btn = document.getElementById("btnEnviar")
+
+  const msg = input.value.trim()
+  if(!msg) return
+
+  /* UI */
+
+  addMsg(msg,"user")
+  input.value=""
+  btn.disabled = true
+
+  /* SALVA USER */
+
+  await db.from("conversas_whatsapp").insert({
+    telefone: telefoneFake,
+    mensagem: msg,
+    role: "user"
+  })
+
+  /* LOADING */
+
+  const loadingMsg = addMsg("","assistant",true)
+
+  try{
+
+    /* CHAMA OTAVIO */
+
+    const res = await fetch("/api/otavio",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        mensagem: msg,
+        telefone: telefoneFake,
+        origem: "painel"
+      })
+    })
+
+    const data = await res.json()
+
+    if(!res.ok){
+      throw new Error(data.error || "Erro na API")
+    }
+
+    const resposta = data.resposta || "Sem resposta"
+
+    /* REMOVE LOADING */
+    loadingMsg.remove()
+
+    /* MOSTRA */
+    addMsg(resposta,"assistant")
+
+    /* SALVA IA */
+    await db.from("conversas_whatsapp").insert({
+      telefone: telefoneFake,
+      mensagem: resposta,
+      role: "assistant"
+    })
+
+  }catch(err){
+
+    loadingMsg.remove()
+
+    addMsg("Erro: " + err.message,"assistant")
+
+  }
+
+  btn.disabled = false
+}
+carregarMais()
+scrollBottom()
+
+document.getElementById("messages").addEventListener("scroll", function(){
+
+  if(this.scrollTop === 0){
+    carregarMais()
+  }
+
+})
+</script>
+
+</body>
+</html>
