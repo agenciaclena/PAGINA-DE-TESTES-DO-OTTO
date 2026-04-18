@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<title>Requisições recebidas </title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --azul: #007bff;
+  --vermelho: #dc3545;
+  --cinza: #f1f1f1;
+  --verde: #28a745;
+  --amarelo: #ffc107;
+  --roxo: #6f42c1;
+  --ink: #222;
+  --bg: #fff;
+}
+body.dark {
+  --azul: #2196f3;
+  --vermelho: #ef5350;
+  --cinza: #1e1e1e;
+  --verde: #4caf50;
+  --amarelo: #ffca28;
+  --roxo: #9575cd;
+  --ink: #eee;
+  --bg: #121212;
+}
+* { box-sizing: border-box; transition: background .3s, color .3s; }
+body {
+  margin: 0;
+font-family: 'Inter', sans-serif;
+  background: var(--cinza);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg);
+  border-bottom: 2px solid var(--cinza);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+header img { height: 45px; }
+header h1 { font-size: 1.3em; margin: 0; }
+#temaBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  margin-left: 10px;
+}
+.resumo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  background: var(--bg);
+  padding: 10px;
+  border-bottom: 2px solid var(--cinza);
+}
+.card-status {
+  background: var(--cinza);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-status span {
+  background: var(--bg);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  min-width: 32px;
+  text-align: center;
+}
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg);
+  position: sticky;
+  top: 70px;
+  z-index: 10;
+}
+.filtros input, .filtros select {
+  padding: 8px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  flex: 1 1 140px;
+  min-width: 120px;
+  background: var(--bg);
+  color: var(--ink);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--bg);
+}
+thead {
+  background: var(--azul);
+  color: #fff;
+  position: sticky;
+  top: 130px;
+  z-index: 5;
+}
+th, td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: center;
+  word-break: break-word;
+}
+tr td[colspan="8"] {
+  background: #e3eaf3;
+  font-weight: bold;
+  text-align: left;
+  font-size: 13px;
+  border-top: 2px solid #ccc;
+  padding: 8px;
+}
+body.dark tr td[colspan="8"] { background: #222; }
+select.status {
+  padding: 4px;
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--ink);
+}
+.alerta {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: var(--verde);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  z-index: 9999;
+  font-size: 14px;
+}
+#overlay-carregando {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.9);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+body.dark #overlay-carregando { background: rgba(0,0,0,0.8); color: #fff; }
+#overlay-carregando img { width: 100px; margin-bottom: 15px; }
+#menu-solicitantes, #relatorio {
+  position: fixed;
+  right: 20px;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 18px;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+#menu-solicitantes { bottom: 70px; background: var(--azul); color: #fff; }
+#relatorio { bottom: 20px; background: var(--verde); color: #fff; }
+#lista-solicitantes {
+  position: fixed;
+  bottom: 120px;
+  right: 20px;
+  background: var(--bg);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  display: none;
+  z-index: 1001;
+  padding: 10px;
+  font-size: 14px;
+  width: 220px;
+}
+#lista-solicitantes div {
+  padding: 6px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+#lista-solicitantes div:hover { background: #f0f0f0; }
+@media(max-width:900px){
+  header h1{font-size:1.1em}
+  .filtros input,.filtros select{flex:1 1 45%}
+  table{font-size:12px}
+}
+
+
+body.dark .card-status {
+  color: #000; /* texto escuro */
+}
+
+body.dark .card-status span {
+  color: #000;
+}
+.card-status span {
+  background: #000;
+  color: #fff;
+  border: 1px solid #ccc;
+}
+
+body.dark .card-status span {
+  background: #000;
+  color: #fff;
+  border: 1px solid #444;
+}
+
+/* ===== POPUP PREMIUM ===== */
+
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.popup-box{
+  width:92%;
+  max-width:520px;
+  background:var(--bg);
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  overflow:hidden;
+  animation: popupIn .25s ease;
+}
+
+@keyframes popupIn{
+  from{transform:scale(.9);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+.popup-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 18px;
+  background:linear-gradient(135deg,var(--azul),#0056b3);
+  color:#fff;
+  font-weight:600;
+}
+
+.popup-header button{
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+}
+
+.popup-body{
+  padding:18px;
+}
+
+.form-group{
+  margin-bottom:12px;
+}
+
+.form-group label{
+  font-size:12px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px;
+}
+
+.form-group input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
+  background:var(--cinza);
+  color:var(--ink);
+}
+
+.form-group input:focus{
+  outline:none;
+  border-color:var(--azul);
+  box-shadow:0 0 0 2px rgba(0,123,255,.2);
+}
+
+/* BOTÃO */
+.btn-save{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--verde),#1e7e34);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  margin-top:6px;
+  transition:.2s;
+}
+
+.btn-save:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(0,0,0,.2);
+}
+
+/* LISTA */
+.lista-usuarios{
+  margin-top:15px;
+  max-height:240px;
+  overflow:auto;
+}
+
+.lista-usuarios div{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+  border-radius:10px;
+  background:var(--cinza);
+  margin-bottom:6px;
+}
+
+.lista-usuarios div b{
+  font-size:14px;
+}
+
+.lista-usuarios small{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.lista-usuarios button{
+  border:none;
+  background:none;
+  cursor:pointer;
+  font-size:16px;
+}
+
+.input-erro{
+  border:1px solid #dc3545 !important;
+  box-shadow:0 0 0 2px rgba(220,53,69,.2);
+}
+  
+</style>
+</head>
+<body>
+  <div class="alerta" id="alertaStatus"></div>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo">
+    <h1>REQUISIÇÕES DE USO E CONSUMO</h1>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="temaBtn" title="Alternar tema">🌙</button>
+    <button onclick="carregarRequisicoes()" style="background:var(--verde);color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔄 Atualizar</button>
+  </div>
+</header>
+
+<div class="resumo">
+  <div class="card-status" style="background:#f9f9f9">🕓 PENDENTE <span id="countPendente">0</span></div>
+  <div class="card-status" style="background:#d1ecf1">🛒 CARRINHO <span id="countCarrinho">0</span></div>
+  <div class="card-status" style="background:#fff3cd">💰 COMPRADO <span id="countComprado">0</span></div>
+  <div class="card-status" style="background:#f8d7da">❌ NEGADO <span id="countNegado">0</span></div>
+  <div class="card-status" style="background:#d4edda">✅ ENTREGUE <span id="countEntregue">0</span></div>
+  <div class="card-status" style="background:#ede7f6">🚫 SEM ESTOQUE <span id="countSemEstoque">0</span></div>
+</div>
+
+<div id="overlay-carregando">
+  <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Carregando">
+  <p>Carregando dados...</p>
+</div>
+
+<div class="filtros">
+  <input type="date" id="dataInicio" onchange="filtrarRequisicoes()">
+  <input type="date" id="dataFim" onchange="filtrarRequisicoes()">
+  <input type="text" id="filtroItem" placeholder="Item ou Observação" oninput="filtrarRequisicoes()">
+  <select id="filtroSolicitante" onchange="filtrarRequisicoes()"><option value="">Todos os Solicitantes</option></select>
+  <select id="filtroStatus" onchange="filtrarRequisicoes()">
+    <option value="PENDENTE" selected>PENDENTE</option>
+    <option value="TODOS">TODOS</option>
+    <option value="COMPRADO">COMPRADO</option>
+    <option value="NO CARRINHO">NO CARRINHO</option>
+    <option value="NEGADO">NEGADO</option>
+    <option value="ENTREGUE">ENTREGUE</option>
+    <option value="SEM ESTOQUE">SEM ESTOQUE</option>
+  </select>
+  <select id="filtroSetor" onchange="filtrarRequisicoes()"><option value="">Todos os Setores</option></select>
+  <select id="filtroExibicao" onchange="filtrarRequisicoes()">
+    <option value="setor">Exibir por Setor</option>
+    <option value="solicitante">Exibir por Solicitante</option>
+  </select>
+  <button onclick="liquidarMassa('ENTREGUE')">📦 Entregue</button>
+  <button onclick="abrirUsuarios()" style="background:#6f42c1;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">
+👤 Usuários
+</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Data e Hora</th><th>Item</th><th>Qtd</th><th>Unid.</th><th>Setor</th><th>Solicitante</th><th>Obs</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="tabelaRequisicoes"></tbody>
+</table>
+
+<button id="menu-solicitantes" onclick="toggleSolicitantes()">👤 Solicitantes</button>
+<div id="lista-solicitantes"></div>
+<button id="relatorio" onclick="gerarRelatorio()">📤 Relatório</button>
+
+<script>
+const sb = supabase.createClient(
+ "https://mybsriouiwqsdufujbsc.supabase.co",
+ "sb_publishable_AUyBEIVCAMUoXwDKUmlqSw_v8EY8rVN"
+);
+let userEditando = null;  
+let dadosRequisicoes=[];
+
+function formatarDataHora(valor){
+  if(!valor) return "";
+  try{
+    const d=new Date(valor);
+    const dd=String(d.getDate()).padStart(2,"0");
+    const mm=String(d.getMonth()+1).padStart(2,"0");
+    const yyyy=d.getFullYear();
+    const hh=String(d.getHours()).padStart(2,"0");
+    const min=String(d.getMinutes()).padStart(2,"0");
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  }catch{return valor;}
+}
+
+document.getElementById("temaBtn").onclick=()=>{document.body.classList.toggle("dark");
+localStorage.setItem("tema",document.body.classList.contains("dark")?"dark":"light");
+document.getElementById("temaBtn").textContent=document.body.classList.contains("dark")?"☀️":"🌙";};
+if(localStorage.getItem("tema")==="dark"){document.body.classList.add("dark");document.getElementById("temaBtn").textContent="☀️";}
+
+async function carregarRequisicoes(){
+ document.getElementById("overlay-carregando").style.display="flex";
+
+
+  
+const { data, error } = await sb
+.from("requisicoes")
+.select("*")
+.order("created_at", { ascending: false })
+.limit(20);
+
+if(error){
+ console.error(error);
+ document.getElementById("overlay-carregando").style.display="none";
+ mostrarAlerta("Erro ao carregar");
+ return;
+}
+
+dadosRequisicoes = (data || []).map(r => ({
+  index: r.id,
+  dataHora: formatarDataHora(r.created_at),
+  item: r.produto,
+  unidade: r.unidade,
+  qtd: parseInt(r.quantidade),
+  setor: r.setor,
+  solicitante: r.usuario,
+  observacoes: r.observacoes,
+  status: r.status || "PENDENTE"
+}));
+
+
+  
+ preencherFiltros();filtrarRequisicoes();
+ document.getElementById("overlay-carregando").style.display="none";
+}
+function preencherFiltros(){
+ const setores=[...new Set(dadosRequisicoes.map(r=>r.setor).filter(Boolean))];
+ document.getElementById("filtroSetor").innerHTML='<option value="">Todos os Setores</option>'+setores.map(s=>`<option>${s}</option>`).join('');
+ const solicitantes=[...new Set(dadosRequisicoes.map(r=>r.solicitante).filter(Boolean))];
+ document.getElementById("filtroSolicitante").innerHTML='<option value="">Todos os Solicitantes</option>'+solicitantes.map(s=>`<option>${s}</option>`).join('');
+ document.getElementById("lista-solicitantes").innerHTML=solicitantes.map(n=>`<div onclick="filtrarPorSolicitante('${n}')">${n}</div>`).join('');
+}
+function parseData(d){if(!d)return null;const p=d.includes('/')?d.split('/'):[...d.split('-')];if(p.length===3){const[a,b,c]=p.map(x=>parseInt(x));return new Date(d.includes('/')?`${c}-${b}-${a}`:`${a}-${b}-${c}`);}return null;}
+function filtrarRequisicoes(){
+ const fs=document.getElementById('filtroStatus').value.toUpperCase(),fi=document.getElementById('filtroItem').value.toLowerCase(),
+ fsol=document.getElementById('filtroSolicitante').value,fset=document.getElementById('filtroSetor').value,
+ din=parseData(document.getElementById('dataInicio').value),df=parseData(document.getElementById('dataFim').value),
+ modo=document.getElementById('filtroExibicao').value,validos=['COMPRADO','NO CARRINHO','NEGADO','ENTREGUE','SEM ESTOQUE'];
+ const filtrados=dadosRequisicoes.filter(i=>{
+  const st=(i.status||'').toUpperCase().trim();const pendente=!validos.includes(st);
+  if(fs!=='TODOS'){if(fs==='PENDENTE'&&!pendente)return false;if(fs!=='PENDENTE'&&st!==fs)return false;}
+  if(fi&&!i.item.toLowerCase().includes(fi))return false;if(fsol&&i.solicitante!==fsol)return false;if(fset&&i.setor!==fset)return false;
+  const dataItem=parseData((i.dataHora||'').split(' ')[0]);
+  if(dataItem&&(din||df)){if(din&&dataItem<din)return false;if(df&&dataItem>df)return false;}
+  return true;
+ });
+ renderizarTabela(filtrados,modo);atualizarResumo();
+}
+function renderizarTabela(lista,modo='setor'){
+ const t=document.getElementById('tabelaRequisicoes');t.innerHTML='';
+ const g={};lista.forEach(i=>{const c=modo==='setor'?i.setor:i.solicitante||'Sem Nome';if(!g[c])g[c]=[];g[c].push(i);});
+ for(const k in g){
+  t.insertAdjacentHTML('beforeend',`<tr><td colspan="8">${modo==='setor'?'Setor':'Solicitante'}: ${k}</td></tr>`);
+  g[k].forEach(i=>{
+   const st=(i.status||'').toUpperCase().trim();
+   const pendente=!['COMPRADO','NO CARRINHO','NEGADO','ENTREGUE','SEM ESTOQUE'].includes(st);
+   t.insertAdjacentHTML('beforeend',`
+    <tr>
+     <td>${i.dataHora}</td><td>${i.item}</td><td>${i.qtd}</td><td>${i.unidade}</td>
+     <td>${i.setor}</td><td>${i.solicitante}</td><td>${i.observacoes}</td>
+     <td><select class="status" onchange="atualizarStatus('${i.index}',this.value)">
+       <option value="PENDENTE" ${st==='PENDENTE'||pendente?'selected':''}>PENDENTE</option>
+       <option value="COMPRADO" ${st==='COMPRADO'?'selected':''}>COMPRADO</option>
+       <option value="NO CARRINHO" ${st==='NO CARRINHO'?'selected':''}>NO CARRINHO</option>
+       <option value="NEGADO" ${st==='NEGADO'?'selected':''}>NEGADO</option>
+       <option value="ENTREGUE" ${st==='ENTREGUE'?'selected':''}>ENTREGUE</option>
+       <option value="SEM ESTOQUE" ${st==='SEM ESTOQUE'?'selected':''}>SEM ESTOQUE</option>
+     </select></td></tr>`);
+  });
+ }
+}
+async function atualizarStatus(i,st){
+
+ mostrarAlerta("Atualizando...");
+
+ const { error } = await sb
+  .from("requisicoes")
+  .update({ status: st })
+  .eq("id", i);
+
+ if(error){
+  console.error(error);
+  mostrarAlerta("Erro ao atualizar");
+  return;
+ }
+
+ const it = dadosRequisicoes.find(r=>r.index===i);
+ if(it) it.status = st;
+
+ filtrarRequisicoes();
+ mostrarAlerta("Status atualizado!");
+}
+
+
+
+
+  
+async function liquidarMassa(st){
+
+ if(!confirm("Marcar todos como ENTREGUE?")) return;
+
+ const filtrados = dadosRequisicoes.filter(r =>
+  document.getElementById('tabelaRequisicoes').innerText.includes(r.item)
+ );
+
+ for(const item of filtrados){
+  await sb
+   .from("requisicoes")
+   .update({ status: st })
+   .eq("id", item.index);
+
+  item.status = st;
+ }
+
+ filtrarRequisicoes();
+ mostrarAlerta(`${filtrados.length} atualizados!`);
+}
+
+
+  
+function toggleSolicitantes(){const l=document.getElementById("lista-solicitantes");l.style.display=l.style.display==="block"?"none":"block";}
+function filtrarPorSolicitante(n){document.getElementById("filtroSolicitante").value=n;filtrarRequisicoes();document.getElementById("lista-solicitantes").style.display="none";}
+function atualizarResumo(){const c={PENDENTE:0,"NO CARRINHO":0,COMPRADO:0,NEGADO:0,ENTREGUE:0,"SEM ESTOQUE":0};
+ dadosRequisicoes.forEach(r=>{const s=(r.status||'').toUpperCase().trim();if(c[s]!=null)c[s]++;else c.PENDENTE++;});
+ countPendente.textContent=c.PENDENTE;countCarrinho.textContent=c["NO CARRINHO"];
+ countComprado.textContent=c.COMPRADO;countNegado.textContent=c.NEGADO;
+ countEntregue.textContent=c.ENTREGUE;countSemEstoque.textContent=c["SEM ESTOQUE"];
+}
+function mostrarAlerta(m){const a=document.getElementById("alertaStatus");a.textContent=m;a.style.display="block";setTimeout(()=>a.style.display="none",2500);}
+function gerarRelatorio(){let html="<img src='https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png' height='60'><h2>Relatório</h2><table border='1' cellspacing='0' cellpadding='4'><thead><tr><th>Data</th><th>Item</th><th>Qtd</th><th>Unid</th><th>Setor</th><th>Solicitante</th><th>Obs</th></tr></thead><tbody>";
+ Array.from(document.querySelectorAll("#tabelaRequisicoes tr")).forEach(tr=>{const tds=Array.from(tr.children).map(td=>td.innerText);if(tds.length===8)html+="<tr>"+tds.slice(0,7).map(td=>`<td>${td}</td>`).join("")+"</tr>";});
+ html+="</tbody></table>";const w=window.open("","Relatório");w.document.write(html);w.document.close();}
+window.addEventListener("DOMContentLoaded",()=>carregarRequisicoes());
+
+
+
+async function abrirUsuarios(){
+document.getElementById("popupUsuarios").style.display="flex";
+document.body.style.overflow = "hidden";
+  carregarUsuarios();
+}
+
+function fecharUsuarios(){
+ document.getElementById("popupUsuarios").style.display="none";
+ document.body.style.overflow = "auto";
+}
+
+async function carregarUsuarios(){
+ const { data, error } = await sb.from("usuarios").select("*");
+
+ if(error){
+  console.error(error);
+  return;
+ }
+
+ const html = data.map(u=>`
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid #ccc;padding:4px;">
+     <div>
+       <b>${u.nome}</b><br>
+       <small>${u.setor}</small>
+     </div>
+     <div>
+       <button onclick="editarUsuario('${u.id}','${u.nome}','${u.setor}')" style="margin-right:5px;">✏️</button>
+       <button onclick="excluirUsuario('${u.id}')">🗑️</button>
+     </div>
+   </div>
+ `).join("");
+
+ document.getElementById("listaUsuarios").innerHTML = html;
+}
+
+async function salvarUsuario(){
+ const nome = document.getElementById("nomeUser").value.toUpperCase().trim();
+ const setor = document.getElementById("setorUser").value.trim();
+ const senha = document.getElementById("senhaUser").value.trim();
+
+// limpa erros anteriores
+["nomeUser","setorUser","senhaUser"].forEach(id=>{
+  document.getElementById(id).classList.remove("input-erro");
+});
+
+if(!nome){
+  document.getElementById("nomeUser").classList.add("input-erro");
+  document.getElementById("nomeUser").focus();
+  mostrarAlerta("Informe o nome");
+  return;
+}
+
+if(!setor){
+  document.getElementById("setorUser").classList.add("input-erro");
+  document.getElementById("setorUser").focus();
+  mostrarAlerta("Informe o setor");
+  return;
+}
+
+if(!senha){
+  document.getElementById("senhaUser").classList.add("input-erro");
+  document.getElementById("senhaUser").focus();
+  mostrarAlerta("Informe a senha");
+  return;
+}
+
+ try{
+
+  // 🔥 UPDATE
+  if(userEditando !== null){
+
+    const { error } = await sb
+      .from("usuarios")
+      .update({
+        nome,
+        setor,
+        senha
+      })
+      .eq("id", userEditando);
+
+    if(error) throw error;
+
+    mostrarAlerta("Usuário atualizado!");
+
+  } else {
+
+    // 🔥 INSERT
+    const { error } = await sb
+      .from("usuarios")
+      .insert([{ nome, setor, senha }]);
+
+    if(error) throw error;
+
+    mostrarAlerta("Usuário criado!");
+  }
+
+  // 🔄 RESET
+  document.getElementById("nomeUser").value="";
+  document.getElementById("setorUser").value="";
+  document.getElementById("senhaUser").value="";
+
+  userEditando = null;
+
+  document.querySelector(".btn-save").textContent = "Salvar Usuário";
+
+  carregarUsuarios();
+
+ }catch(e){
+  console.error(e);
+  mostrarAlerta("Erro ao salvar");
+ }
+}
+
+function editarUsuario(id,nome,setor){
+ document.getElementById("nomeUser").value = nome;
+ document.getElementById("setorUser").value = setor;
+ document.getElementById("senhaUser").value = ""; // 🔥 força digitar nova senha
+
+ userEditando = id;
+
+ document.querySelector(".btn-save").textContent = "Atualizar Usuário";
+
+ mostrarAlerta("Modo edição ativado");
+}
+
+async function excluirUsuario(id){
+ if(!confirm("Excluir usuário?")) return;
+
+ await sb.from("usuarios").delete().eq("id", id);
+ carregarUsuarios();
+}
+</script>
+
+
+<div id="popupUsuarios" class="popup-overlay">
+
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <span>👤 Gestão de Usuários</span>
+      <button onclick="fecharUsuarios()">✖</button>
+    </div>
+
+    <div class="popup-body">
+
+      <div class="form-group">
+        <label>Nome</label>
+        <input id="nomeUser" placeholder="Digite o nome">
+      </div>
+
+      <div class="form-group">
+        <label>Setor</label>
+        <input id="setorUser" placeholder="Digite o setor">
+      </div>
+
+      <div class="form-group">
+        <label>Senha</label>
+        <input id="senhaUser" type="password" placeholder="Digite a senha">
+      </div>
+
+      <button class="btn-save" onclick="salvarUsuario()">Salvar Usuário</button>
+
+      <div id="listaUsuarios" class="lista-usuarios"></div>
+
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

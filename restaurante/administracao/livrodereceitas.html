@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>CMV Executivo Total</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#111827;
+  --bg:#f3f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --radius:12px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  font-family:Inter,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ================= HEADER EM LINHA ================= */
+
+.header{
+  background:#fff;
+  padding:6px 10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+
+/* BUSCA */
+.header input{
+  flex:1;
+  min-width:0;
+  height:30px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  padding:0 8px;
+  font-size:11px;
+  font-weight:600;
+  background:#f9fafb;
+  outline:none;
+}
+
+.header input:focus{
+  border-color:var(--primary);
+}
+
+/* SELECT */
+.header select{
+  width:120px;
+  height:30px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  padding:0 6px;
+  font-size:11px;
+  font-weight:600;
+  background:#f9fafb;
+  outline:none;
+}
+
+/* BOTÃO */
+.header button{
+  height:30px;
+  padding:0 10px;
+  border-radius:6px;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+  font-size:10px;
+  font-weight:700;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:.2s ease;
+}
+
+.header button:hover{
+  opacity:.85;
+}
+
+/* ================= CONTAINER ================= */
+
+.container{
+  padding:14px;
+  max-width:1100px;
+  margin:auto;
+}
+
+/* ================= CARD ================= */
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+  box-shadow:0 6px 20px rgba(0,0,0,.04);
+}
+
+/* HEADER DO CARD */
+.card-header{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:14px;
+  align-items:start;
+}
+
+.card img{
+  width:100%;
+  height:110px;
+  object-fit:cover;
+  border-radius:8px;
+  background:#000;
+}
+
+.card h2{
+  margin:0 0 4px;
+  font-size:16px;
+  font-weight:800;
+}
+
+.card-header div > div{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* BADGES */
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:6px;
+}
+
+.badge{
+  background:#eef2ff;
+  padding:3px 7px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:700;
+}
+
+/* ================= GRID FINANCEIRO ================= */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:6px;
+  margin-top:12px;
+}
+
+.box{
+  background:#f9fafb;
+  padding:7px 8px;
+  border-radius:7px;
+  font-size:11px;
+}
+
+.box b{
+  font-size:10px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:2px;
+}
+
+/* ================= SECTIONS ================= */
+
+.section-title{
+  margin-top:16px;
+  margin-bottom:6px;
+  font-weight:800;
+  font-size:12px;
+}
+
+/* ================= TABLE ================= */
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+}
+
+th{
+  background:#f3f4f6;
+  font-size:9px;
+  text-transform:uppercase;
+  color:var(--muted);
+  padding:5px;
+  text-align:left;
+}
+
+td{
+  padding:5px;
+  border-bottom:1px solid var(--border);
+  font-size:11px;
+}
+
+.total-row{
+  background:#f1f5f9;
+  font-weight:800;
+}
+
+/* ================= MOBILE AJUSTES ================= */
+
+@media(max-width:600px){
+
+  .header select{
+    width:90px;
+  }
+
+  .header button{
+    padding:0 8px;
+  }
+
+  .card{
+    padding:14px;
+  }
+
+  .card-header{
+    grid-template-columns:1fr;
+  }
+
+  .card img{
+    height:160px;
+  }
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  table{
+    font-size:10px;
+  }
+
+  th{
+    font-size:8px;
+  }
+
+  td{
+    font-size:10px;
+  }
+}
+
+/* ================= PRINT ================= */
+
+@media print{
+  .header{
+    display:none;
+  }
+  .card{
+    page-break-after:always;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <input id="search" placeholder="Buscar prato">
+  <select id="tipoFilter">
+    <option value="">Todos os tipos</option>
+  </select>
+  <button onclick="window.print()">Exportar PDF</button>
+</div>
+
+<div class="container" id="conteudo"></div>
+
+<script>
+const sb = supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+let pratos = [];
+let itensMap = {};
+let impostosMap = {};
+
+async function carregarDados(){
+
+  const { data: buffet } = await sb.from("buffet").select("*");
+  const { data: itens } = await sb.from("buffet_itens").select("*");
+  const { data: impostos } = await sb.from("impostos").select("*");
+
+  pratos = buffet || [];
+
+  itensMap = {};
+  (itens||[]).forEach(i=>{
+    if(!itensMap[i.buffet_id]) itensMap[i.buffet_id]=[];
+    itensMap[i.buffet_id].push(i);
+  });
+
+  impostosMap = {};
+  (impostos||[]).forEach(i=>{
+    if(!impostosMap[i.buffet_id]) impostosMap[i.buffet_id]=[];
+    impostosMap[i.buffet_id].push(i);
+  });
+
+  popularTipos();
+  aplicarFiltros();
+}
+
+function popularTipos(){
+  const tipos=[...new Set(pratos.map(p=>p.tipo).filter(Boolean))];
+  tipoFilter.innerHTML="<option value=''>Todos</option>"+
+    tipos.map(t=>`<option value="${t}">${t}</option>`).join("");
+}
+
+function aplicarFiltros(){
+
+  const nome = search.value.toUpperCase();
+  const tipo = tipoFilter.value;
+
+  const filtrados = pratos.filter(p=>{
+    const nomeOk = !nome || p.nome.toUpperCase().includes(nome);
+    const tipoOk = !tipo || p.tipo === tipo;
+    return nomeOk && tipoOk;
+  });
+
+  render(filtrados);
+
+  /* 🔥 VOLTAR PARA O TOPO */
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth" 
+  });
+}
+
+function render(lista){
+  conteudo.innerHTML="";
+
+  lista.forEach(p=>{
+
+    const itens=itensMap[p.id]||[];
+    const impostos=impostosMap[p.id]||[];
+
+    const cmvBase=itens.reduce((s,i)=>s+Number(i.custo_calculado||0),0);
+
+    let totalImp=0;
+    impostos.forEach(i=>{
+      if(i.modalidade==="FIXO") totalImp+=Number(i.valor);
+      if(i.modalidade==="PERCENTUAL")
+        totalImp+=(cmvBase*Number(i.valor))/100;
+    });
+
+    const custoFinal=cmvBase+totalImp;
+    const preco=Number(p.preco_venda||0);
+    const lucro=preco-custoFinal;
+    const margem=preco?(lucro/preco)*100:0;
+    const cmvPerc=preco?(cmvBase/preco)*100:0;
+
+    const div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`
+      <div class="card-header">
+        <img src="${p.foto_url||'https://placehold.co/600x400?text=Sem+Foto'}">
+        <div>
+          <h2>${p.nome}</h2>
+          <div>${p.descricao||""}</div>
+
+          <div class="badges">
+            <div class="badge">Tipo: ${p.tipo||"-"}</div>
+            <div class="badge">Status: ${p.ativo?"Ativo":"Inativo"}</div>
+            <div class="badge">Código: ${p.codigo_varejo||"-"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="box"><b>Preço Venda</b><br>R$ ${preco.toFixed(2)}</div>
+        <div class="box"><b>Preço Ideal</b><br>R$ ${Number(p.preco_ideal||0).toFixed(2)}</div>
+        <div class="box"><b>Custo Base</b><br>R$ ${cmvBase.toFixed(2)}</div>
+        <div class="box"><b>Custo Final</b><br>R$ ${custoFinal.toFixed(2)}</div>
+        <div class="box"><b>CMV</b><br>${cmvPerc.toFixed(1)}%</div>
+        <div class="box"><b>Lucro</b><br>R$ ${lucro.toFixed(2)}</div>
+        <div class="box"><b>Margem</b><br>${margem.toFixed(1)}%</div>
+      </div>
+
+      <div class="section-title">Ingredientes</div>
+      <table>
+        <tr>
+          <th>Nome</th>
+          <th>Qtd</th>
+          <th>Un.</th>
+          <th>Custo Unit.</th>
+          <th>Custo Total</th>
+        </tr>
+        ${itens.map(i=>{
+          const qtd=Number(i.quantidade||0);
+          const custoUnit=Number(i.custo_unitario||0);
+          const total=qtd*custoUnit;
+          return `
+            <tr>
+              <td>${i.nome}</td>
+<td>${qtd.toFixed(4)}</td>
+<td>${i.unidade_uso}</td>
+              <td>R$ ${custoUnit.toFixed(2)}</td>
+              <td><b>R$ ${total.toFixed(2)}</b></td>
+            </tr>
+          `;
+        }).join("")}
+        <tr class="total-row">
+          <td colspan="4">Total Ingredientes</td>
+          <td>R$ ${cmvBase.toFixed(2)}</td>
+        </tr>
+      </table>
+
+      <div class="section-title">Impostos / Custos</div>
+      <table>
+        <tr><th>Descrição</th><th>Tipo</th><th>Modalidade</th><th>Valor</th></tr>
+        ${impostos.map(i=>`
+          <tr>
+            <td>${i.descricao}</td>
+            <td>${i.tipo}</td>
+            <td>${i.modalidade}</td>
+            <td>${i.modalidade==="PERCENTUAL"?i.valor+"%":"R$ "+Number(i.valor).toFixed(2)}</td>
+          </tr>
+        `).join("")}
+      </table>
+
+      <div class="section-title">Modo de Preparo</div>
+      <div>${p.modo_preparo||"-"}</div>
+    `;
+
+    conteudo.appendChild(div);
+  });
+}
+
+search.oninput=aplicarFiltros;
+tipoFilter.onchange=aplicarFiltros;
+
+carregarDados();
+</script>
+
+</body>
+</html>

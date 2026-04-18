@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Auditoria CMV • Painel Completo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+
+<style>
+:root{
+--bg:#f4f6fb;
+--card:#ffffff;
+--text:#0f172a;
+--muted:#64748b;
+--border:#e5e7eb;
+--primary:#2563eb;
+--danger:#dc2626;
+--success:#16a34a;
+--radius:16px;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Inter;
+background:var(--bg);
+color:var(--text);
+}
+
+/* HEADER */
+
+.header{
+background:#fff;
+padding:14px 20px;
+border-bottom:1px solid var(--border);
+display:flex;
+gap:10px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.header input,
+.header select{
+height:36px;
+border-radius:10px;
+border:1px solid var(--border);
+padding:0 10px;
+font-size:13px;
+}
+
+.header input{flex:1}
+
+/* CONTAINER */
+
+.container{
+padding:20px;
+max-width:1400px;
+margin:auto;
+}
+
+/* CARDS */
+
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:14px;
+margin-bottom:20px;
+}
+
+.card{
+background:var(--card);
+border-radius:var(--radius);
+border:1px solid var(--border);
+padding:16px;
+}
+
+.card small{
+color:var(--muted);
+font-size:11px;
+}
+
+.card strong{
+display:block;
+font-size:26px;
+margin-top:6px;
+}
+
+/* CHART */
+
+.chart-box{
+background:#fff;
+border-radius:var(--radius);
+border:1px solid var(--border);
+padding:16px;
+margin-bottom:20px;
+height:260px;
+}
+
+/* TABLE */
+
+.table-wrap{
+background:#fff;
+border-radius:var(--radius);
+border:1px solid var(--border);
+overflow:hidden;
+}
+
+.table-scroll{
+max-height:450px;
+overflow:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
+
+th{
+background:#f9fafb;
+text-align:left;
+font-size:10px;
+text-transform:uppercase;
+color:var(--muted);
+padding:10px;
+}
+
+td{
+padding:10px;
+border-bottom:1px solid var(--border);
+}
+
+tr:hover{
+background:#f8fafc;
+}
+
+.badge{
+padding:3px 8px;
+border-radius:999px;
+font-size:10px;
+font-weight:700;
+}
+
+.insert{background:#dcfce7;color:#166534}
+.update{background:#fef9c3;color:#854d0e}
+.delete{background:#fee2e2;color:#991b1b}
+
+/* BUTTONS */
+
+.btn{
+background:var(--primary);
+color:#fff;
+border:none;
+padding:6px 10px;
+border-radius:6px;
+font-size:11px;
+cursor:pointer;
+}
+
+.btn-danger{
+background:var(--danger);
+}
+
+/* MODAL */
+
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.55);
+display:none;
+align-items:center;
+justify-content:center;
+padding:30px;
+}
+
+.modal-box{
+background:#fff;
+width:100%;
+max-width:900px;
+border-radius:18px;
+overflow:hidden;
+}
+
+.modal-header{
+padding:16px;
+border-bottom:1px solid var(--border);
+display:flex;
+justify-content:space-between;
+font-weight:700;
+}
+
+.modal-body{
+padding:20px;
+max-height:70vh;
+overflow:auto;
+}
+
+.grid-compare{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+pre{
+background:#0f172a;
+color:#e2e8f0;
+padding:12px;
+border-radius:10px;
+overflow:auto;
+font-size:11px;
+}
+
+/* TOAST */
+
+.toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:#0f172a;
+color:#fff;
+padding:8px 14px;
+border-radius:8px;
+font-size:11px;
+display:none;
+}
+
+/* MOBILE */
+
+@media(max-width:900px){
+.cards{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+<input id="rangeData" placeholder="Período">
+
+<select id="filtroOperacao">
+<option value="">Operação</option>
+<option value="INSERT">INSERT</option>
+<option value="UPDATE">UPDATE</option>
+<option value="DELETE">DELETE</option>
+</select>
+
+<input id="buscaTabela" placeholder="Buscar tabela">
+
+<button class="btn" onclick="carregar()">Atualizar</button>
+<button class="btn" onclick="exportar()">Exportar CSV</button>
+
+</div>
+
+<div class="container">
+
+<div class="cards">
+<div class="card"><small>Total Alterações</small><strong id="total">0</strong></div>
+<div class="card"><small>INSERT</small><strong id="ins">0</strong></div>
+<div class="card"><small>UPDATE</small><strong id="upd">0</strong></div>
+<div class="card"><small>DELETE</small><strong id="del">0</strong></div>
+</div>
+
+<div class="chart-box">
+<canvas id="grafico"></canvas>
+</div>
+
+<div class="table-wrap">
+<div class="table-scroll">
+<table>
+
+<thead>
+<tr>
+<th>Data</th>
+<th>Tabela</th>
+<th>Operação</th>
+<th>ID Registro</th>
+<th>Ações</th>
+</tr>
+</thead>
+
+<tbody id="tbody"></tbody>
+
+</table>
+</div>
+</div>
+
+</div>
+
+<div class="modal" id="modal">
+<div class="modal-box">
+<div class="modal-header">
+Detalhes da Alteração
+<button onclick="fechar()">Fechar</button>
+</div>
+<div class="modal-body" id="conteudo"></div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+const sb = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+let chart;
+
+flatpickr("#rangeData",{mode:"range",dateFormat:"Y-m-d",locale:"pt"});
+
+function toast(msg){
+const t=document.getElementById("toast");
+t.innerText=msg;
+t.style.display="block";
+setTimeout(()=>t.style.display="none",3000);
+}
+
+async function carregar(){
+
+let query=sb.from("historico_alteracao_fichas").select("*");
+
+if(filtroOperacao.value)
+query=query.eq("operacao",filtroOperacao.value);
+
+const {data,error}=await query.order("alterado_em",{ascending:false}).limit(500);
+
+if(error){toast(error.message);return;}
+
+tbody.innerHTML="";
+
+let i=0,u=0,d=0;
+const dias={};
+
+data.forEach(r=>{
+
+if(buscaTabela.value){
+if(!r.tabela.toLowerCase().includes(buscaTabela.value.toLowerCase()))
+return;
+}
+
+const dia=r.alterado_em.slice(0,10);
+
+if(!dias[dia])dias[dia]=0;
+dias[dia]++;
+
+if(r.operacao==="INSERT")i++;
+if(r.operacao==="UPDATE")u++;
+if(r.operacao==="DELETE")d++;
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${new Date(r.alterado_em).toLocaleString()}</td>
+<td>${r.tabela}</td>
+<td><span class="badge ${r.operacao.toLowerCase()}">${r.operacao}</span></td>
+<td>${r.registro_id}</td>
+<td>
+<button class="btn" onclick='ver(${JSON.stringify(r)})'>Ver</button>
+<button class="btn" onclick='copiar(${JSON.stringify(r)})'>Copiar</button>
+<button class="btn btn-danger" onclick="restaurar('${r.id}')">Restaurar</button>
+</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
+total.innerText=data.length;
+ins.innerText=i;
+upd.innerText=u;
+del.innerText=d;
+
+const labels=Object.keys(dias).sort();
+const valores=labels.map(l=>dias[l]);
+
+if(chart)chart.destroy();
+
+chart=new Chart(grafico,{
+type:'bar',
+data:{
+labels,
+datasets:[{
+data:valores,
+backgroundColor:"#60a5fa",
+borderRadius:6,
+barThickness:28
+}]
+},
+options:{
+responsive:true,
+maintainAspectRatio:false,
+plugins:{legend:{display:false}},
+scales:{x:{grid:{display:false}},y:{beginAtZero:true}}
+}
+});
+
+}
+
+function ver(item){
+modal.style.display="flex";
+
+conteudo.innerHTML=`
+<div class="grid-compare">
+<div><h3>Antes</h3><pre>${JSON.stringify(item.dados_antes,null,2)}</pre></div>
+<div><h3>Depois</h3><pre>${JSON.stringify(item.dados_depois,null,2)}</pre></div>
+</div>
+`;
+}
+
+function fechar(){modal.style.display="none";}
+
+function copiar(item){
+navigator.clipboard.writeText(JSON.stringify(item,null,2));
+toast("Copiado");
+}
+
+async function restaurar(id){
+
+const senha=prompt("Senha:");
+
+if(senha!=="8486"){toast("Senha incorreta");return;}
+
+await sb.rpc("restaurar_historico",{p_id:id});
+
+toast("Registro restaurado");
+
+carregar();
+
+}
+
+function exportar(){
+
+let csv="";
+document.querySelectorAll("table tr").forEach(r=>{
+let cols=[...r.children].map(c=>c.innerText).join(",");
+csv+=cols+"\n";
+});
+
+const blob=new Blob([csv]);
+const url=URL.createObjectURL(blob);
+const a=document.createElement("a");
+
+a.href=url;
+a.download="auditoria.csv";
+a.click();
+
+}
+
+carregar();
+
+</script>
+
+</body>
+</html>

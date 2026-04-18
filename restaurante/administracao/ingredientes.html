@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>PAINEL DE INGREDIENTES • CMV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  
+<style>
+:root{
+  --primary:#14b8a6;
+  --primary-dark:#0f766e;
+
+  --bg:#0b1220;
+  --panel:#0f172a;
+  --card:#020617;
+
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+
+  --border:rgba(148,163,184,.18);
+  --ring:rgba(20,184,166,.35);
+
+  --radius-xl:24px;
+  --radius-lg:16px;
+  --radius-md:12px;
+
+  --shadow-soft:0 10px 30px rgba(0,0,0,.35);
+  --shadow-strong:0 30px 70px rgba(0,0,0,.55);
+}
+
+/* RESET */
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  height:100%;
+  width:100%;
+
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;
+
+  background:
+  radial-gradient(1200px 600px at 10% -10%, rgba(20,184,166,.08), transparent 60%),
+  radial-gradient(900px 500px at 110% 10%, rgba(20,184,166,.06), transparent 55%),
+  var(--bg);
+
+  color:var(--text);
+
+  overflow:hidden;
+}
+
+/* LAYOUT PRINCIPAL */
+
+.app{
+
+  display:grid;
+
+  grid-template-columns:240px 1fr;
+
+  height:100%;
+  width:100%;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+
+  grid-column:1;
+
+  background:
+  linear-gradient(180deg, rgba(15,23,42,.95), rgba(11,18,32,.96));
+
+  border-right:1px solid var(--border);
+
+  padding:18px 14px;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:10px;
+
+  height:100%;
+  overflow:hidden;
+}
+
+.sidebar h2{
+
+  margin:4px 6px 10px;
+
+  font-size:16px;
+  font-weight:900;
+
+  letter-spacing:.06em;
+
+  color:#e6fffa;
+}
+
+/* BUSCA */
+
+.sidebar input{
+
+  background:#020617;
+
+  color:var(--text);
+
+  padding:10px 12px;
+
+  border-radius:999px;
+
+  border:1px solid var(--border);
+
+  outline:none;
+
+  font-size:13px;
+
+  text-transform:uppercase;
+}
+
+.sidebar input::placeholder{
+  color:var(--muted);
+}
+
+.sidebar input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px var(--ring);
+}
+
+/* LISTA */
+
+.lista{
+
+  margin-top:6px;
+
+  padding:6px;
+
+  flex:1;
+
+  overflow-y:auto;
+
+  border-radius:14px;
+
+  background:
+  linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+
+  border:1px solid var(--border);
+}
+
+.lista::-webkit-scrollbar{
+  width:6px;
+}
+
+.lista::-webkit-scrollbar-thumb{
+  background:rgba(148,163,184,.25);
+  border-radius:999px;
+}
+
+/* ITEM */
+
+.item{
+
+  padding:10px 12px;
+
+  border-radius:10px;
+
+  margin-bottom:4px;
+
+  cursor:pointer;
+
+  font-weight:700;
+
+  font-size:13px;
+
+  letter-spacing:.03em;
+
+  color:#c7d2fe;
+
+  background:
+  linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+
+  border:1px solid var(--border);
+
+  transition:.15s;
+}
+
+.item:hover{
+
+  border-color:rgba(20,184,166,.6);
+
+  box-shadow:0 6px 16px rgba(20,184,166,.15);
+}
+
+.item.active{
+
+  background:
+  linear-gradient(135deg, rgba(20,184,166,.18), rgba(20,184,166,.05));
+
+  border-color:rgba(20,184,166,.7);
+
+  color:#e6fffa;
+}
+
+/* BOTÃO NOVO */
+
+.new{
+
+  margin-top:10px;
+
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+
+  border:none;
+
+  border-radius:999px;
+
+  padding:10px;
+
+  font-size:13px;
+
+  font-weight:900;
+
+  letter-spacing:.08em;
+
+  color:#042f2e;
+
+  cursor:pointer;
+
+  box-shadow:0 12px 30px rgba(20,184,166,.45);
+}
+
+.new:hover{
+
+  transform:translateY(-1px);
+
+  box-shadow:0 18px 50px rgba(20,184,166,.65);
+}
+
+/* MAIN */
+
+.main{
+
+  grid-column:2;
+
+  padding:20px;
+
+  overflow-y:auto;
+
+  height:100%;
+}
+
+/* CARD */
+
+.card{
+
+  max-width:900px;
+
+  margin:auto;
+
+  background:
+
+  radial-gradient(120% 120% at 10% 0%, rgba(255,255,255,.04), transparent 40%),
+
+  linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+
+  var(--panel);
+
+  border-radius:22px;
+
+  padding:24px;
+
+  border:1px solid var(--border);
+
+  box-shadow:var(--shadow-strong);
+}
+
+/* TITULO */
+
+.card h1{
+
+  margin:0 0 10px;
+
+  font-size:22px;
+
+  font-weight:900;
+
+  letter-spacing:.05em;
+}
+
+/* SECTION */
+
+.section{
+
+  margin-top:18px;
+
+  padding-top:12px;
+
+  border-top:1px dashed var(--border);
+}
+
+/* GRID */
+
+.form-grid{
+
+  display:grid;
+
+  grid-template-columns:repeat(3,minmax(0,1fr));
+
+  gap:10px;
+}
+
+/* FIELD */
+
+.field{
+
+  display:flex;
+  flex-direction:column;
+}
+
+.field.full{
+  grid-column:1 / -1;
+}
+
+.form-grid h3{
+  grid-column:1 / -1;
+}
+
+/* LABEL */
+
+.field label{
+
+  font-size:11px;
+
+  font-weight:800;
+
+  letter-spacing:.08em;
+
+  color:#cbd5e1;
+}
+
+/* INPUT */
+
+input,select{
+
+  width:100%;
+
+  padding:10px 12px;
+
+  border-radius:10px;
+
+  border:1px solid var(--border);
+
+  margin-top:5px;
+
+  background:
+  linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+  #020617;
+
+  color:var(--text);
+
+  font-size:13px;
+
+  text-transform:uppercase;
+
+  outline:none;
+
+  transition:.15s;
+}
+
+input::placeholder{
+  color:var(--muted);
+}
+
+input:focus,select:focus{
+
+  border-color:var(--primary);
+
+  box-shadow:0 0 0 3px var(--ring);
+}
+
+/* BOTÃO */
+
+button{
+
+  margin-top:18px;
+
+  border:none;
+
+  border-radius:999px;
+
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+
+  color:#042f2e;
+
+  font-weight:900;
+
+  font-size:13px;
+
+  letter-spacing:.08em;
+
+  padding:12px 18px;
+
+  box-shadow:0 14px 40px rgba(20,184,166,.45);
+
+  cursor:pointer;
+}
+
+button:hover{
+
+  transform:translateY(-1px);
+
+  box-shadow:0 20px 60px rgba(20,184,166,.65);
+}
+
+/* SUGESTÕES */
+
+.sugestoes{
+
+  position:absolute;
+
+  top:100%;
+  left:0;
+  right:0;
+
+  margin-top:4px;
+
+  background:#020617;
+
+  border:1px solid var(--border);
+
+  border-radius:10px;
+
+  max-height:200px;
+
+  overflow:auto;
+
+  z-index:50;
+}
+
+.sugestoes div{
+
+  padding:10px 12px;
+
+  cursor:pointer;
+
+  font-weight:700;
+
+  font-size:13px;
+
+  color:#e6fffa;
+}
+
+.sugestoes div:hover{
+
+  background:
+  linear-gradient(135deg, rgba(20,184,166,.25), rgba(20,184,166,.08));
+}
+
+/* TOAST */
+
+.toast{
+
+  position:fixed;
+
+  bottom:20px;
+
+  left:50%;
+
+  transform:translateX(-50%);
+
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+
+  padding:10px 16px;
+
+  border-radius:999px;
+
+  font-weight:900;
+
+  font-size:12px;
+
+  letter-spacing:.06em;
+
+  color:#042f2e;
+
+  box-shadow:0 20px 60px rgba(20,184,166,.55);
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>INGREDIENTES</h2>
+  <input id="busca" placeholder="BUSCAR...">
+  <div id="lista" class="lista"></div>
+  <button class="new" onclick="novo()">+ NOVO INGREDIENTE</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="card">
+
+    <h1 id="titulo">NOVO INGREDIENTE</h1>
+<div class="section form-grid">
+
+<div class="field full" style="position:relative">
+  <label>NOME</label>
+  <input id="nome" autocomplete="off" placeholder="DIGITE PARA BUSCAR OU CADASTRAR...">
+  <div id="sugestoes" class="sugestoes"></div>
+</div>
+
+  <div class="field full">
+    <label>DESCRIÇÃO</label>
+    <input id="descricao">
+  </div>
+
+  <div class="field">
+    <label>UNIDADE</label>
+    <select id="unidade">
+      <option>UN</option><option>KG</option><option>G</option><option>L</option><option>ML</option>
+    </select>
+  </div>
+
+</div>
+
+<div class="section form-grid">
+
+  <div class="field">
+    <label>VALOR</label>
+    <input id="valor">
+  </div>
+
+  <div class="field">
+    <label>QUANTIDADE DE REFERÊNCIA</label>
+    <input id="quantidade_referencia" type="number" placeholder="Ex: 700">
+  </div>
+<div id="preview_conversao" 
+     style="margin-top:6px;
+            font-weight:800;
+            color:#14b8a6;
+            letter-spacing:.04em;">
+</div>
+  <div class="field">
+    <label>RENDIMENTO (%)</label>
+    <input id="rendimento" value="100">
+  </div>
+
+</div>
+
+   <div class="section form-grid">
+
+  <h3>INFORMAÇÃO NUTRICIONAL (por 100g ou 100ml)</h3>
+
+  <div class="field">
+    <label>VALOR ENERGÉTICO (kcal)</label>
+    <input id="energia_kcal" type="number">
+  </div>
+
+  <div class="field">
+    <label>CARBOIDRATOS (g)</label>
+    <input id="carboidratos" type="number">
+  </div>
+
+  <div class="field">
+    <label>AÇÚCARES TOTAIS (g)</label>
+    <input id="acucares_totais" type="number">
+  </div>
+
+  <div class="field">
+    <label>AÇÚCARES ADICIONADOS (g)</label>
+    <input id="acucares_adicionados" type="number">
+  </div>
+
+  <div class="field">
+    <label>PROTEÍNAS (g)</label>
+    <input id="proteinas" type="number">
+  </div>
+
+  <div class="field">
+    <label>GORDURAS TOTAIS (g)</label>
+    <input id="gorduras_totais" type="number">
+  </div>
+
+  <div class="field">
+    <label>GORDURAS SATURADAS (g)</label>
+    <input id="gorduras_saturadas" type="number">
+  </div>
+
+  <div class="field">
+    <label>GORDURAS TRANS (g)</label>
+    <input id="gorduras_trans" type="number">
+  </div>
+
+  <div class="field">
+    <label>FIBRA ALIMENTAR (g)</label>
+    <input id="fibra_alimentar" type="number">
+  </div>
+
+  <div class="field">
+    <label>SÓDIO (mg)</label>
+    <input id="sodio_mg" type="number">
+  </div>
+
+</div>
+    <button onclick="salvar()">SALVAR INGREDIENTE</button>
+
+  </div>
+</div>
+
+</div>
+
+<div id="toast" class="toast">SALVO COM SUCESSO</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+let atual=null;
+
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2500);
+}
+
+document.addEventListener("input",e=>{
+  if(e.target.tagName==="INPUT") e.target.value=e.target.value.toUpperCase();
+});
+
+function moeda(el){
+  el.oninput=()=>{
+    let v=el.value.replace(/\D/g,"");
+    el.value="R$ "+(v/100).toFixed(2).replace(".",",");
+  }
+}
+window.addEventListener("DOMContentLoaded", ()=>{
+  moeda(valor);
+});
+let pagina = 0;
+const LIMITE = 20;
+let carregando = false;
+let fim = false;
+
+async function carregar(reset=false){
+  if(carregando || fim) return;
+  carregando = true;
+
+  if(reset){
+    pagina = 0;
+    fim = false;
+    lista.innerHTML = "";
+  }
+
+  const { data } = await sb
+    .from("produtos")
+    .select("*")
+    .order("id", { ascending: false })  // últimos primeiro
+    .range(pagina*LIMITE, (pagina+1)*LIMITE - 1);
+
+  if(!data || data.length === 0){
+    fim = true;
+    carregando = false;
+    return;
+  }
+
+  lista.insertAdjacentHTML("beforeend",
+    data.map(i=>`
+      <div class="item ${atual?.id===i.id?'active':''}" onclick="editar('${i.id}')">
+        ${i.nome}
+      </div>
+    `).join("")
+  );
+
+  pagina++;
+  carregando = false;
+}
+
+carregar(true);
+
+lista.addEventListener("scroll", ()=>{
+  const pertoDoFim =
+    lista.scrollTop + lista.clientHeight
+    >= lista.scrollHeight - 40;
+
+  if(pertoDoFim){
+    carregar();
+  }
+});
+
+busca.oninput = async ()=>{
+  const q = busca.value.trim().toLowerCase();
+  if(!q){
+    carregar(true);
+    return;
+  }
+
+  const { data } = await sb
+    .from("produtos")
+    .select("*")
+    .ilike("nome", `%${q}%`);
+
+  lista.innerHTML = (data||[]).map(i=>`
+    <div class="item" onclick="editar('${i.id}')">${i.nome}</div>
+  `).join("");
+};
+
+async function editar(id){
+  const {data}=await sb.from("produtos").select("*").eq("id",id).single();
+  atual=data;
+  titulo.textContent="EDITAR INGREDIENTE";
+
+  Object.keys(data).forEach(k=>{
+    if(document.getElementById(k)) document.getElementById(k).value=data[k]||"";
+  });
+
+  valor.value="R$ "+Number(data.valor).toFixed(2).replace(".",",");
+}
+
+function novo(){
+  atual=null;
+  titulo.textContent="NOVO INGREDIENTE";
+  document.querySelectorAll("input").forEach(i=>i.value="");
+  rendimento.value=100;
+}
+
+
+
+
+  function converterParaBase(qtd, unidade){
+  if(unidade === "L") return qtd * 1000;
+  if(unidade === "KG") return qtd * 1000;
+  return qtd;
+}
+
+
+
+
+  function atualizarPreviewConversao(){
+
+  const valorDigitado = Number(valor.value.replace(/\D/g,""))/100;
+  const qtdRef = Number(quantidade_referencia.value || 0);
+  const unidadeSelecionada = unidade.value;
+  const preview = document.getElementById("preview_conversao");
+
+  if(!valorDigitado || !qtdRef){
+    preview.innerHTML = "";
+    return;
+  }
+
+  let valorConvertido = valorDigitado;
+  let textoUnidade = unidadeSelecionada;
+
+  if(unidadeSelecionada === "ML"){
+    const litros = qtdRef / 1000;
+    valorConvertido = valorDigitado / litros;
+    textoUnidade = "LITRO";
+  }
+
+  if(unidadeSelecionada === "G"){
+    const kg = qtdRef / 1000;
+    valorConvertido = valorDigitado / kg;
+    textoUnidade = "KG";
+  }
+
+  if(unidadeSelecionada === "L"){
+    valorConvertido = valorDigitado / qtdRef;
+    textoUnidade = "LITRO";
+  }
+
+  if(unidadeSelecionada === "KG"){
+    valorConvertido = valorDigitado / qtdRef;
+    textoUnidade = "KG";
+  }
+
+  if(unidadeSelecionada === "UN"){
+    valorConvertido = valorDigitado / qtdRef;
+    textoUnidade = "UNIDADE";
+  }
+
+  preview.innerHTML = 
+    `VALOR FINAL: R$ ${valorConvertido.toFixed(2)} POR ${textoUnidade}`;
+}
+async function salvar(){
+
+  const valorDigitado = Number(valor.value.replace(/\D/g,""))/100;
+  const qtdRef = Number(quantidade_referencia.value || 0);
+  const unidadeSelecionada = unidade.value;
+
+  if(!valorDigitado || !qtdRef){
+    toast("INFORME VALOR E QUANTIDADE");
+    return;
+  }
+
+  let valorConvertido = valorDigitado;
+
+  /* ================================
+     CONVERSÃO PARA UNIDADE BASE
+  ================================= */
+
+  if(unidadeSelecionada === "ML"){
+    // converte para litro
+    const litros = qtdRef / 1000;
+    valorConvertido = valorDigitado / litros;
+  }
+
+  if(unidadeSelecionada === "G"){
+    // converte para kg
+    const kg = qtdRef / 1000;
+    valorConvertido = valorDigitado / kg;
+  }
+
+  if(unidadeSelecionada === "L"){
+    valorConvertido = valorDigitado / qtdRef;
+  }
+
+  if(unidadeSelecionada === "KG"){
+    valorConvertido = valorDigitado / qtdRef;
+  }
+
+  if(unidadeSelecionada === "UN"){
+    valorConvertido = valorDigitado / qtdRef;
+  }
+
+  /* ================================
+     PAYLOAD FINAL
+  ================================= */
+
+let unidadeFinal = unidadeSelecionada;
+
+if(unidadeSelecionada === "ML") unidadeFinal = "L";
+if(unidadeSelecionada === "G") unidadeFinal = "KG";
+
+const payload={
+  nome:nome.value,
+  descricao:descricao.value,
+
+  // 🔥 agora salva a unidade convertida
+  unidade_medida:unidadeFinal,
+
+    // 🔥 AGORA SALVA SEMPRE PREÇO BASE
+    valor:valorConvertido,
+
+    quantidade_referencia:qtdRef,
+    rendimento_percentual:Number(rendimento.value),
+
+    energia_kcal:+energia_kcal.value||0,
+    carboidratos:+carboidratos.value||0,
+    acucares_totais:+acucares_totais.value||0,
+    acucares_adicionados:+acucares_adicionados.value||0,
+    proteinas:+proteinas.value||0,
+    gorduras_totais:+gorduras_totais.value||0,
+    gorduras_saturadas:+gorduras_saturadas.value||0,
+    gorduras_trans:+gorduras_trans.value||0,
+    fibra_alimentar:+fibra_alimentar.value||0,
+    sodio_mg:+sodio_mg.value||0
+  };
+
+  if(atual){
+    await sb.from("produtos").update(payload).eq("id",atual.id);
+    toast("EDITADO COM SUCESSO");
+  }else{
+    await sb.from("produtos").insert(payload);
+    toast("SALVO COM SUCESSO");
+
+    atual=null;
+    titulo.textContent="NOVO INGREDIENTE";
+    document.querySelectorAll("input").forEach(i=>i.value="");
+    unidade.value="UN";
+    rendimento.value=100;
+  }
+
+  carregar(true);
+}
+
+const sugestoes = document.getElementById("sugestoes");
+
+nome.addEventListener("input", async () => {
+  const q = nome.value.trim();
+
+  if(q.length < 2){
+    sugestoes.innerHTML = "";
+    return;
+  }
+
+  const { data } = await sb
+    .from("produtos")
+    .select("id, nome")
+    .ilike("nome", `%${q}%`)
+    .limit(6);
+
+  if(!data || data.length === 0){
+    sugestoes.innerHTML = "";
+    return;
+  }
+
+  sugestoes.innerHTML = data.map(i => `
+    <div onclick="selecionarIngrediente('${i.id}')">
+      ${i.nome}
+    </div>
+  `).join("");
+});
+
+async function selecionarIngrediente(id){
+  const { data } = await sb
+    .from("produtos")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  atual = data;
+  titulo.textContent = "EDITAR INGREDIENTE";
+
+  Object.keys(data).forEach(k=>{
+    if(document.getElementById(k)){
+      document.getElementById(k).value = data[k] || "";
+    }
+  });
+
+  valor.value = "R$ " + Number(data.valor).toFixed(2).replace(".", ",");
+
+  sugestoes.innerHTML = "";
+}
+
+// fecha sugestões ao clicar fora
+document.addEventListener("click", (e)=>{
+  if(!e.target.closest(".field")){
+    sugestoes.innerHTML = "";
+  }
+});
+
+
+valor.addEventListener("input", atualizarPreviewConversao);
+quantidade_referencia.addEventListener("input", atualizarPreviewConversao);
+unidade.addEventListener("change", atualizarPreviewConversao);
+</script>
+
+</body>
+</html>

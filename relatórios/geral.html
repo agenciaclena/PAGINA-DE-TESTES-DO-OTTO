@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Central de Relatórios • CMV</title>
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+minimum-scale=1,
+user-scalable=no,
+viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--primary:#2563eb;
+--primary-dark:#1e40af;
+
+--bg:#f8fafc;
+--card:#ffffff;
+
+--text:#0f172a;
+--muted:#64748b;
+--border:#e5e7eb;
+
+--radius:16px;
+
+--shadow-sm:0 4px 12px rgba(0,0,0,.06);
+--shadow-md:0 10px 30px rgba(0,0,0,.12);
+}
+
+*{
+box-sizing:border-box;
+-webkit-font-smoothing:antialiased;
+}
+
+body{
+margin:0;
+font-family:Inter,sans-serif;
+background:
+radial-gradient(1200px 500px at 10% -10%, #eef2ff 0%, transparent 60%),
+radial-gradient(1200px 500px at 110% 10%, #ecfeff 0%, transparent 60%),
+var(--bg);
+
+color:var(--text);
+}
+
+/* =========================
+   FILTROS
+========================= */
+
+.filters{
+
+background:#0f172a;
+
+padding:10px 14px;
+
+display:flex;
+align-items:center;
+gap:8px;
+
+border-bottom:1px solid #1e293b;
+
+position:sticky;
+top:0;
+
+z-index:50;
+
+flex-wrap:wrap;
+}
+
+.filters input{
+
+flex:1;
+min-width:240px;
+
+height:34px;
+
+border-radius:8px;
+border:1px solid #334155;
+
+padding:0 10px;
+
+font-size:12px;
+font-weight:600;
+
+background:#1e293b;
+color:#fff;
+}
+
+.filters input::placeholder{
+color:#94a3b8;
+}
+
+.filters select{
+
+width:160px;
+
+height:34px;
+
+border-radius:8px;
+border:1px solid #334155;
+
+padding:0 8px;
+
+font-size:12px;
+font-weight:600;
+
+background:#1e293b;
+color:#fff;
+}
+
+.filters select:hover,
+.filters input:hover{
+border-color:#475569;
+}
+
+.filters input:focus,
+.filters select:focus{
+border-color:#3b82f6;
+box-shadow:0 0 0 2px rgba(59,130,246,.2);
+}
+
+/* =========================
+   GRID
+========================= */
+
+.grid{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fill,minmax(210px,1fr));
+
+gap:16px;
+
+padding:20px;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.card{
+
+background:var(--card);
+
+border-radius:16px;
+
+border:1px solid var(--border);
+
+box-shadow:var(--shadow-sm);
+
+cursor:pointer;
+
+transition:.15s ease;
+
+display:flex;
+flex-direction:column;
+
+overflow:hidden;
+}
+
+.card:hover{
+
+transform:translateY(-3px);
+
+box-shadow:var(--shadow-md);
+}
+
+/* ICON */
+
+.card-icon{
+
+height:70px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:28px;
+font-weight:900;
+
+background:linear-gradient(
+135deg,
+var(--primary),
+var(--primary-dark)
+);
+
+color:white;
+}
+
+/* BODY */
+
+.card-body{
+
+padding:12px;
+
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+.card-title{
+
+font-size:14px;
+font-weight:900;
+
+line-height:1.2;
+
+display:-webkit-box;
+-webkit-line-clamp:2;
+-webkit-box-orient:vertical;
+overflow:hidden;
+}
+
+.card-desc{
+
+font-size:12px;
+
+color:var(--muted);
+
+display:-webkit-box;
+-webkit-line-clamp:2;
+-webkit-box-orient:vertical;
+overflow:hidden;
+}
+
+/* BADGE */
+
+.badge{
+
+margin-top:4px;
+
+display:inline-flex;
+align-items:center;
+
+font-size:10px;
+
+font-weight:900;
+
+padding:4px 8px;
+
+border-radius:999px;
+
+background:#eef2ff;
+color:#3730a3;
+
+width:max-content;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:520px){
+
+.grid{
+grid-template-columns:
+repeat(3,1fr);
+gap:10px;
+padding:12px;
+}
+
+.card-icon{
+height:60px;
+font-size:22px;
+}
+
+.card-title{
+font-size:12px;
+}
+
+.card-desc{
+display:none;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="filters">
+
+<input
+id="search"
+type="text"
+placeholder="Buscar relatório..."
+>
+
+<select id="tipoFiltro">
+<option value="">Todos os tipos</option>
+<option value="financeiro">Financeiro</option>
+<option value="cmv">CMV</option>
+<option value="insumos">Insumos</option>
+<option value="auditoria">Auditoria</option>
+<option value="operacional">Operacional</option>
+</select>
+
+</div>
+
+
+<div id="grid" class="grid"></div>
+
+
+<script>
+
+/* =========================
+   RELATÓRIOS
+========================= */
+
+const relatorios=[
+
+{
+titulo:"Relatório de Receitas",
+descricao:"Resumo de vendas e faturamento.",
+tipo:"financeiro",
+icone:"💰",
+link:"receitas.html"
+},
+
+{
+titulo:"Relatório de Ingredientes",
+descricao:"Consumo e custo por ingrediente.",
+tipo:"insumos",
+icone:"🧾",
+link:"ingredientesexcel.html"
+},
+
+{
+titulo:"Histórico de Alterações",
+descricao:"Auditoria completa do sistema.",
+tipo:"auditoria",
+icone:"🕓",
+link:"historico.html"
+},
+
+{
+titulo:"Relatório de Vendas",
+descricao:"Performance de produtos.",
+tipo:"financeiro",
+icone:"🛒",
+link:"vendas.html"
+},
+
+{
+titulo:"Custos e Impostos",
+descricao:"Taxas operacionais e impostos.",
+tipo:"cmv",
+icone:"⚙️",
+link:"impostos.html"
+},
+
+{
+titulo:"Livro de Receitas",
+descricao:"Acesso rápido às fichas técnicas.",
+tipo:"cmv",
+icone:"📖",
+link:"caderno.html"
+}
+
+];
+
+
+/* =========================
+   RENDER
+========================= */
+
+function render(){
+
+const grid=document.getElementById("grid");
+
+const busca=document
+.getElementById("search")
+.value
+.toLowerCase();
+
+const tipo=document
+.getElementById("tipoFiltro")
+.value;
+
+grid.innerHTML="";
+
+relatorios
+.filter(r=>
+(!busca ||
+r.titulo.toLowerCase().includes(busca)) &&
+
+(!tipo || r.tipo===tipo)
+
+)
+.forEach(r=>{
+
+const card=document.createElement("a");
+
+card.href=r.link;
+
+card.className="card";
+
+card.innerHTML=`
+
+<div class="card-icon">${r.icone}</div>
+
+<div class="card-body">
+
+<div class="card-title">${r.titulo}</div>
+
+<div class="card-desc">${r.descricao}</div>
+
+<div class="badge">${r.tipo.toUpperCase()}</div>
+
+</div>
+
+`;
+
+grid.appendChild(card);
+
+});
+
+}
+
+/* =========================
+   EVENTOS
+========================= */
+
+search.addEventListener("input",render);
+
+tipoFiltro.addEventListener("change",render);
+
+render();
+
+</script>
+
+</body>
+</html>

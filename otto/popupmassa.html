@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Disparo em Massa</title>
+
+<style>
+body{
+  font-family:Inter;
+  background:#0f172a;
+  color:#fff;
+  padding:20px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  margin:10px 0;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+button:hover{
+  opacity:.9;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📢 Disparo em Massa</h2>
+
+<button onclick="disparar('confirmao_de_reserva')">
+Confirmar Reservas
+</button>
+
+<button onclick="disparar('reserva_especial')">
+Sala VIP
+</button>
+
+<button onclick="disparar('hello_world')">
+Teste
+</button>
+
+<script>
+async function disparar(template){
+
+  if(!confirm("Deseja enviar para TODOS os clientes?")) return
+
+  await fetch("/api/send-template-massa",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ template })
+  })
+
+  alert("🚀 Disparo iniciado!")
+}
+</script>
+
+</body>
+</html>

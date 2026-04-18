@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mídias • Admin</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+/* ================= BASE ================= */
+
+:root{
+  --primary:#111827;
+  --accent:#2563eb;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --radius:18px;
+  --shadow-sm:0 4px 12px rgba(0,0,0,.06);
+  --shadow-md:0 20px 40px rgba(0,0,0,.12);
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  height:100%;
+}
+
+body.modal-open{
+  overflow:hidden; /* trava apenas quando modal abrir */
+}
+
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  color:var(--text);
+}
+
+/* ================= HEADER ================= */
+
+.header{
+  height:70px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 32px;
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+
+.header h1{
+  font-size:18px;
+  font-weight:900;
+  margin:0;
+}
+
+.header button{
+  height:42px;
+  padding:0 22px;
+  border-radius:14px;
+  font-weight:800;
+  font-size:13px;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+  cursor:pointer;
+  transition:.25s;
+}
+
+.header button:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
+}
+
+/* ================= LAYOUT ================= */
+
+.container{
+  flex:1;
+  display:grid;
+  grid-template-columns:520px 1fr;
+  gap:24px;
+  padding:24px;
+}
+
+/* ================= PAINEL ================= */
+
+.panel{
+  background:#fff;
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  box-shadow:var(--shadow-sm);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.panel h2{
+  font-size:13px;
+  font-weight:900;
+  margin:0;
+  color:var(--accent);
+}
+
+label{
+  font-size:11px;
+  font-weight:800;
+  color:var(--muted);
+}
+
+input,select,textarea{
+  height:40px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  padding:0 12px;
+  font-size:13px;
+  font-weight:600;
+  width:100%;
+}
+
+textarea{
+  height:90px;
+  padding:10px;
+  resize:none;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.days{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.day{
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.day.active{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+
+/* ===== PREVIEW PROFISSIONAL AJUSTADO ===== */
+
+.preview{
+  min-height:280px;      /* altura mínima */
+  height:40vh;           /* proporcional à tela */
+  max-height:520px;      /* limite máximo */
+  border-radius:14px;
+  border:2px dashed var(--border);
+  background:#0f172a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
+}
+
+/* container interno */
+.preview img,
+.preview video{
+  width:100%;
+  height:100%;
+  object-fit:contain;   /* 🔥 mostra arquivo inteiro */
+  object-position:center;
+  border-radius:10px;
+  background:#000;      /* 🔥 fundo preto elegante */
+}
+
+button.primary{
+  background:var(--accent);
+  color:#fff;
+  height:40px;
+  border:none;
+  border-radius:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+button.secondary{
+  background:#f1f5f9;
+  color:#111827;
+  height:36px;
+  border:none;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+button.danger{
+  background:#fee2e2;
+  color:#991b1b;
+  border:none;
+  border-radius:10px;
+}
+
+/* ================= DIREITA ================= */
+
+.right-area{
+  display:flex;
+  flex-direction:column;
+}
+
+.search-bar{
+  height:44px;
+  margin-bottom:16px;
+}
+
+.search-bar input{
+  width:100%;
+  height:100%;
+  border-radius:14px;
+}
+
+/* ================= GRID 6 POR LINHA ================= */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(6, 1fr);
+  gap:14px;
+  padding-right:6px;
+
+  align-content:start; /* 🔥 não estica verticalmente */
+}
+
+/* ================= CARD PEQUENO ================= */
+
+.card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:var(--shadow-sm);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  transition:.2s;
+}
+
+.card:hover{
+  box-shadow:var(--shadow-md);
+  transform:translateY(-3px);
+}
+
+/* MEDIA MENOR */
+.media{
+  height:110px;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.media img,
+.media video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* META COMPACTO */
+.meta{
+  padding:10px;
+  font-size:11px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.badge{
+  font-size:9px;
+  font-weight:900;
+  padding:3px 8px;
+  border-radius:999px;
+  width:fit-content;
+  background:#e5edff;
+  color:var(--accent);
+}
+
+.badge.on{background:#dcfce7;color:#166534;}
+.badge.off{background:#f1f5f9;color:#64748b;}
+
+/* LINHA INFERIOR */
+.card-footer{
+  padding:8px 10px 12px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-top:1px solid var(--border);
+}
+
+/* ================= TOGGLE SWITCH ================= */
+
+.switch{
+  position:relative;
+  width:42px;
+  height:22px;
+}
+
+.switch input{
+  opacity:0;
+  width:0;
+  height:0;
+}
+
+.slider{
+  position:absolute;
+  cursor:pointer;
+  inset:0;
+  background:#e5e7eb;
+  border-radius:999px;
+  transition:.3s;
+}
+
+.slider:before{
+  content:"";
+  position:absolute;
+  height:18px;
+  width:18px;
+  left:2px;
+  top:2px;
+  background:white;
+  border-radius:50%;
+  transition:.3s;
+  box-shadow:0 2px 4px rgba(0,0,0,.2);
+}
+
+.switch input:checked + .slider{
+  background:var(--success);
+}
+
+.switch input:checked + .slider:before{
+  transform:translateX(20px);
+}
+
+/* RESPONSIVO */
+@media(max-width:1400px){
+  .grid{grid-template-columns:repeat(4,1fr);}
+}
+@media(max-width:1000px){
+  .grid{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:700px){
+  .grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr;}
+}
+
+/* ================= MODAL ================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+}
+
+.modal.open{
+  opacity:1;
+  pointer-events:all;
+}
+
+.modal-box{
+  width:95%;
+  max-width:1200px;
+  height:85vh;
+  background:#fff;
+  border-radius:20px;
+  display:grid;
+  grid-template-columns:1fr 360px;
+  box-shadow:var(--shadow-md);
+  overflow:hidden;
+}
+
+/* SCROLL LADO ESQUERDO */
+.buffet-wrap{
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.buffet-list{
+  flex:1;
+  overflow-y:auto;
+  padding-right:6px;
+}
+
+/* SCROLL LADO DIREITO */
+.edit-area{
+  border-left:1px solid var(--border);
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  overflow-y:auto;
+}
+
+.buffet-wrap{
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+}
+
+.filters{
+  display:flex;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.buffet-list{
+  flex:1;
+  overflow-y:auto;
+  display:grid;
+  gap:12px;
+}
+
+.buffet-item{
+  display:flex;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.buffet-item:hover{
+  background:#f9fafb;
+}
+
+.buffet-item img{
+  width:60px;
+  height:60px;
+  border-radius:10px;
+  object-fit:cover;
+}
+
+.toggle{
+  margin-left:auto;
+  height:28px;
+  padding:0 10px;
+  border:none;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.toggle.on{background:#dcfce7;color:#166534;}
+.toggle.off{background:#f1f5f9;color:#6b7280;}
+
+.edit-area{
+  border-left:1px solid var(--border);
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.edit-area h3{
+  margin:0;
+  font-size:14px;
+  font-weight:900;
+}
+
+@media(max-width:1000px){
+  .container{grid-template-columns:1fr;}
+  .modal-box{grid-template-columns:1fr;}
+}
+
+
+/* =====================================================
+   MOBILE & TABLET OTIMIZADO PROFISSIONAL
+===================================================== */
+
+@media (max-width: 1024px){
+
+  /* HEADER MAIS COMPACTO */
+  .header{
+    height:56px;
+    padding:0 16px;
+  }
+
+  .header h1{
+    font-size:15px;
+  }
+
+  .header button{
+    height:34px;
+    font-size:11px;
+    padding:0 14px;
+    border-radius:10px;
+  }
+
+  /* LAYOUT 1 COLUNA */
+  .container{
+    grid-template-columns:1fr;
+    padding:14px;
+    gap:14px;
+  }
+
+  /* PAINEL MAIS COMPACTO */
+  .panel{
+    padding:16px;
+    gap:10px;
+  }
+
+  .panel h2{
+    font-size:11px;
+  }
+
+  input,select,textarea{
+    height:34px;
+    font-size:12px;
+    border-radius:10px;
+  }
+
+  textarea{
+    height:70px;
+  }
+
+  .row{
+    gap:8px;
+  }
+
+  .day{
+    font-size:10px;
+    padding:5px 10px;
+  }
+
+.preview{
+  min-height:260px;
+  height:45vh;
+  max-height:480px;
+  font-size:11px;
+}
+
+  button.primary{
+    height:36px;
+    font-size:12px;
+  }
+
+  /* GRID MAIS INTELIGENTE */
+  .grid{
+    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+    gap:12px;
+  }
+
+  .media{
+    height:110px;
+  }
+
+  .meta{
+    padding:10px;
+    font-size:11px;
+  }
+
+  .actions{
+    padding:8px;
+  }
+
+  .actions button{
+    height:28px;
+    font-size:10px;
+  }
+
+  /* MODAL FULLSCREEN MOBILE */
+  .modal-box{
+    width:100%;
+    height:100%;
+    border-radius:0;
+    grid-template-columns:1fr;
+  }
+
+  .buffet-wrap{
+    padding:16px;
+  }
+
+  .filters{
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .edit-area{
+    padding:16px;
+    border-left:none;
+    border-top:1px solid var(--border);
+  }
+
+  .buffet-item{
+    padding:10px;
+  }
+
+  .buffet-item img{
+    width:50px;
+    height:50px;
+  }
+
+}
+
+.edit-btn{
+  height:26px;
+  width:26px;
+  border:none;
+  border-radius:8px;
+  background:#eef2ff;
+  color:#1e40af;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.2s;
+}
+
+.edit-btn:hover{
+  background:#dbeafe;
+  transform:scale(1.05);
+}
+
+.small-x{
+  height:26px;
+  width:26px;
+  padding:0;
+  font-size:11px;
+}
+
+.btn-group{
+  display:flex;
+  gap:10px;
+}
+
+.btn-group button{
+  flex:1;              /* 🔥 divide o espaço igualmente */
+}
+
+/* ================= PRODUTO VINCULADO UI FIX ================= */
+
+#buscaProduto{
+  margin-top:6px;
+}
+
+
+/* card produto vinculado */
+#produtoSelecionado{
+  margin-top:10px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:#f9fafb;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  box-shadow:var(--shadow-sm);
+}
+
+/* título */
+#produtoSelecionado strong{
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:.5px;
+}
+
+/* nome do produto */
+#produtoSelecionado span{
+  font-size:15px;
+  font-weight:800;
+  color:var(--primary);
+}
+
+/* botão remover alinhado */
+#produtoSelecionado button{
+  align-self:flex-start;
+  height:32px;
+  padding:0 14px;
+  font-size:12px;
+  border-radius:10px;
+}
+
+/* ================= BUSCA PRODUTO DROPDOWN FIX ================= */
+
+.produto-wrapper{
+  position:relative;
+}
+
+#resultadoProdutos{
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  margin-top:6px;
+
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:0 12px 30px rgba(0,0,0,.12);
+
+  max-height:180px;
+  overflow-y:auto;
+
+  z-index:50;
+  display:none;
+}
+
+#resultadoProdutos.active{
+  display:block;
+}
+
+#resultadoProdutos div{
+  padding:12px 14px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.15s;
+}
+
+#resultadoProdutos div:hover{
+  background:#f1f5f9;
+}
+
+
+ /* ================= LOADING BUTTON ================= */
+
+.btn-loading{
+  position:relative;
+  pointer-events:none;
+  opacity:.8;
+}
+
+.btn-loading::after{
+  content:"";
+  position:absolute;
+  width:18px;
+  height:18px;
+  border:3px solid rgba(255,255,255,.4);
+  border-top:3px solid #fff;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+
+/* ================= CALENDÁRIO ================= */
+
+/* ================= CALENDÁRIO RESPONSIVO REAL ================= */
+
+.calendar-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+
+.calendar-header h2{
+  font-size:18px;
+  font-weight:900;
+}
+
+.calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:10px;
+  width:100%;
+}
+
+.calendar-day{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  min-height:140px;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  transition:.2s;
+  cursor:pointer;
+  overflow:hidden;
+}
+
+.calendar-day:hover{
+  box-shadow:var(--shadow-md);
+}
+
+.calendar-day-number{
+  font-size:13px;
+  font-weight:900;
+}
+
+.calendar-promos{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overflow:auto;
+}
+
+.calendar-mini{
+  height:34px;
+  border-radius:6px;
+  overflow:hidden;
+  border:1px solid var(--border);
+}
+
+.calendar-mini img,
+.calendar-mini video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* RESPONSIVO */
+
+@media(max-width:1200px){
+  .calendar-day{min-height:120px;}
+}
+
+@media(max-width:900px){
+  .calendar-grid{
+    grid-template-columns:repeat(4,1fr);
+  }
+}
+
+@media(max-width:600px){
+  .calendar-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:420px){
+  .calendar-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* ================= POPUP CALENDÁRIO PREMIUM ================= */
+
+.day-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.65);
+  backdrop-filter:blur(6px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+  z-index:100;
+}
+
+.day-modal.open{
+  opacity:1;
+  pointer-events:all;
+}
+
+.day-box{
+  width:95%;
+  max-width:1000px;
+  max-height:85vh;
+  background:#fff;
+  border-radius:24px;
+  padding:30px;
+  overflow-y:auto;
+  box-shadow:0 40px 80px rgba(0,0,0,.25);
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+.day-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.day-header h2{
+  margin:0;
+  font-size:20px;
+  font-weight:900;
+}
+
+.day-close{
+  height:38px;
+  width:38px;
+  border-radius:12px;
+  border:none;
+  background:#f1f5f9;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.day-list{
+  display:grid;
+  gap:20px;
+}
+
+.day-card{
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+  display:grid;
+  grid-template-columns:260px 1fr;
+  gap:20px;
+  align-items:center;
+  box-shadow:var(--shadow-sm);
+}
+
+.day-media{
+  height:200px;
+  background:#000;
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.day-media img,
+.day-media video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+}
+
+.flag{
+  display:inline-flex;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.flag.on{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.flag.off{
+  background:#f1f5f9;
+  color:#64748b;
+}
+
+.day-actions{
+  display:flex;
+  gap:12px;
+  margin-top:10px;
+}
+
+.btn-soft{
+  background:#eef2ff;
+  color:#1e3a8a;
+  border:none;
+  border-radius:12px;
+  padding:10px 16px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.btn-danger{
+  background:#fee2e2;
+  color:#991b1b;
+  border:none;
+  border-radius:12px;
+  padding:10px 16px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.calendar-count{
+  margin-top:auto;
+  display:flex;
+  gap:6px;
+  font-size:10px;
+  font-weight:800;
+}
+
+.count-on{
+  background:#dcfce7;
+  color:#166534;
+  padding:2px 8px;
+  border-radius:999px;
+}
+
+.count-off{
+  background:#f1f5f9;
+  color:#64748b;
+  padding:2px 8px;
+  border-radius:999px;
+}
+
+
+
+  
+
+
+
+
+
+
+
+
+
+  
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Mídias do Cardápio</h1>
+  <button onclick="openBuffetModal()">🍽️ Ver Itens do Cardápio</button>
+</div>
+
+<div class="container">
+
+<div class="panel">
+
+  <h2>NOVA PROMOÇÃO</h2>
+
+  <label>Arquivo</label>
+  <input id="file" type="file" accept="image/*,video/*">
+
+  <div class="row">
+    <input id="hora_inicio" type="time" value="00:00">
+    <input id="hora_fim" type="time" value="23:59">
+  </div>
+
+    <div class="days">
+      <div class="day" data-v="1">Seg</div>
+      <div class="day" data-v="2">Ter</div>
+      <div class="day" data-v="3">Qua</div>
+      <div class="day" data-v="4">Qui</div>
+      <div class="day" data-v="5">Sex</div>
+      <div class="day" data-v="6">Sáb</div>
+      <div class="day" data-v="7">Dom</div>
+    </div>
+
+<div class="preview" id="preview">Pré-visualização</div>
+
+<label>Vincular Produto</label>
+
+<div class="produto-wrapper">
+  <input id="buscaProduto" 
+         placeholder="Pesquisar produto..."
+         oninput="buscarProdutos()">
+
+  <div id="resultadoProdutos"></div>
+</div>
+
+<div id="produtoSelecionado" 
+     style="display:none; padding:10px; border:1px solid var(--border); border-radius:10px;">
+</div>
+
+<div class="btn-group">
+
+  
+<button id="btnSalvar" class="primary" onclick="addPromo()">
+  Salvar Promoção
+</button>
+
+  <button id="btnCancelar" class="secondary" 
+          onclick="cancelEdit()" 
+          style="display:none;">
+    Cancelar
+  </button>
+</div>
+  </div>
+
+<div class="right-area">
+
+  <div class="calendar-header">
+    <button onclick="prevMonth()">◀</button>
+    <h2 id="monthTitle"></h2>
+    <button onclick="nextMonth()">▶</button>
+  </div>
+
+  <div class="calendar-grid" id="calendar"></div>
+
+</div>
+
+</div>
+
+<!-- ================= MODAL ================= -->
+
+<div id="buffetModal" class="modal" onclick="if(event.target.id==='buffetModal')closeBuffetModal()">
+  <div class="modal-box">
+
+    <div class="buffet-wrap">
+      <div class="filters">
+        <input id="buscaBuffet" placeholder="Buscar..." oninput="renderBuffet()">
+<select id="filtroSetor" onchange="renderBuffet()"></select>
+      </div>
+      <div id="buffetList" class="buffet-list"></div>
+    </div>
+
+    <div class="edit-area">
+      <h3>Editar Item</h3>
+      <input id="editNome" placeholder="Nome">
+      <textarea id="editDesc" placeholder="Descrição"></textarea>
+      <input id="editFoto" type="file" accept="image/*">
+      <button class="primary" onclick="salvarItem()">Salvar</button>
+      <button class="secondary" onclick="closeBuffetModal()">Fechar</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+/* ===================== SUPABASE ===================== */
+
+const sb = supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+/* ===================== PROMOÇÕES ===================== */
+
+const fileInput=document.getElementById("file");
+const horaInicioInput=document.getElementById("hora_inicio");
+const horaFimInput=document.getElementById("hora_fim");
+const preview=document.getElementById("preview");
+
+let diasSel=[];
+let editingPromoId=null;
+let produtoVinculado = null;
+
+document.querySelectorAll(".day").forEach(d=>{
+  d.onclick=()=>{
+    d.classList.toggle("active");
+    const v=+d.dataset.v;
+    diasSel.includes(v)?diasSel=diasSel.filter(x=>x!==v):diasSel.push(v);
+  };
+});
+
+fileInput.onchange = () => {
+
+  const f = fileInput.files[0];
+  if (!f) return;
+
+  const url = URL.createObjectURL(f);
+
+  /* 🔥 DETECTA AUTOMATICAMENTE */
+  const tipoDetectado = f.type.startsWith("video")
+    ? "VIDEO"
+    : "IMG";
+
+  fileInput.dataset.tipo = tipoDetectado; // salva temporariamente
+
+  preview.innerHTML = tipoDetectado === "VIDEO"
+    ? `<video src="${url}" autoplay muted loop playsinline></video>`
+    : `<img src="${url}">`;
+};
+  
+
+async function buscarProdutos(){
+
+  const termo = document.getElementById("buscaProduto").value.toLowerCase();
+  const box = document.getElementById("resultadoProdutos");
+
+  if(!termo){
+    box.classList.remove("active");
+    box.innerHTML = "";
+    return;
+  }
+
+  const { data } = await sb
+    .from("produtos")
+    .select("id,nome")
+    .ilike("nome", `%${termo}%`)
+    .limit(10);
+
+  if(!data || !data.length){
+    box.classList.remove("active");
+    box.innerHTML = "";
+    return;
+  }
+
+  box.innerHTML = data.map(p => `
+    <div onclick="selecionarProduto('${p.id}','${p.nome}')">
+      ${p.nome}
+    </div>
+  `).join("");
+
+  box.classList.add("active");
+}
+
+function selecionarProduto(id,nome){
+
+  produtoVinculado = id;
+
+  document.getElementById("produtoSelecionado").style.display = "block";
+
+  
+document.getElementById("produtoSelecionado").innerHTML = `
+  <strong>PRODUTO VINCULADO</strong>
+  <span>${nome}</span>
+  <button class="secondary"
+          onclick="removerProdutoVinculado()">
+    Remover
+  </button>
+`;
+
+const box = document.getElementById("resultadoProdutos");
+box.classList.remove("active");
+box.innerHTML = "";
+
+document.getElementById("buscaProduto").value = "";
+}
+
+function removerProdutoVinculado(){
+  produtoVinculado = null;
+  document.getElementById("produtoSelecionado").style.display = "none";
+}
+
+async function addPromo(){
+
+  const btn = document.getElementById("btnSalvar");
+
+  if(!diasSel.length){
+    alert("Selecione os dias");
+    return;
+  }
+
+  btn.classList.add("btn-loading");
+
+  try{
+
+    const f = fileInput.files[0];
+
+    /* ================= MODO EDIÇÃO ================= */
+    if(editingPromoId){
+
+      let updateData = {
+        dias_semana: diasSel,
+        hora_inicio: horaInicioInput.value,
+        hora_fim: horaFimInput.value,
+        produto_id: produtoVinculado
+      };
+
+      if (fileInput.dataset.tipo) {
+        updateData.tipo = fileInput.dataset.tipo;
+      }
+
+      if(f){
+        const ext = f.name.split(".").pop();
+        const path = `promocoes/${Date.now()}.${ext}`;
+
+        const { error } =
+          await sb.storage.from("promocoes").upload(path, f, { upsert:true });
+
+        if(error) throw error;
+
+        const { data } =
+          sb.storage.from("promocoes").getPublicUrl(path);
+
+        updateData.url = data.publicUrl;
+      }
+
+      await sb.from("promocoes")
+        .update(updateData)
+        .eq("id", editingPromoId);
+
+      editingPromoId = null;
+
+    }
+    else{
+
+      /* ================= NOVA PROMOÇÃO ================= */
+
+      if(!f){
+        alert("Selecione um arquivo");
+        return;
+      }
+
+      const ext = f.name.split(".").pop();
+      const path = `promocoes/${Date.now()}.${ext}`;
+
+      const { error } =
+        await sb.storage.from("promocoes").upload(path, f);
+
+      if(error) throw error;
+
+      const { data } =
+        sb.storage.from("promocoes").getPublicUrl(path);
+
+      await sb.from("promocoes").insert({
+        url: data.publicUrl,
+        tipo: fileInput.dataset.tipo || "IMG",
+        dias_semana: diasSel,
+        hora_inicio: horaInicioInput.value,
+        hora_fim: horaFimInput.value,
+        ativo: true,
+        produto_id: produtoVinculado
+      });
+    }
+
+    resetForm();
+loadCalendarPromos();
+  }
+  catch(e){
+    console.error(e);
+    alert("Erro ao salvar");
+  }
+  finally{
+    btn.classList.remove("btn-loading");
+  }
+}
+
+async function togglePromo(id,ativo){
+  await sb.from("promocoes").update({ativo:!ativo}).eq("id",id);
+loadCalendarPromos();
+}
+
+async function delPromo(id){
+  if(!confirm("Excluir mídia?"))return;
+  await sb.from("promocoes").delete().eq("id",id);
+loadCalendarPromos();
+}
+
+async function editarPromo(id){
+
+  const { data } = await sb
+    .from("promocoes")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  editingPromoId = id;
+  produtoVinculado = data.produto_id;
+
+if(produtoVinculado){
+  const { data: produto } = await sb
+    .from("produtos")
+    .select("nome")
+    .eq("id", produtoVinculado)
+    .single();
+
+  if(produto){
+    selecionarProduto(produtoVinculado, produto.nome);
+  }
+}
+document.getElementById("btnCancelar").style.display = "inline-block";
+document.getElementById("btnSalvar").innerText = "Atualizar Promoção";
+  horaInicioInput.value = data.hora_inicio;
+  horaFimInput.value = data.hora_fim;
+
+  diasSel = data.dias_semana || [];
+
+  /* 🔥 ATUALIZA VISUAL DOS DIAS */
+  document.querySelectorAll(".day").forEach(d=>{
+    const v = +d.dataset.v;
+    d.classList.toggle("active", diasSel.includes(v));
+  });
+
+  /* 🔥 MOSTRA IMAGEM ORIGINAL NO PREVIEW */
+if(data.url){
+  preview.innerHTML = data.tipo === "VIDEO"
+    ? `<video src="${data.url}" autoplay muted loop></video>`
+    : `<img src="${data.url}">`;
+
+  fileInput.dataset.tipo = data.tipo; // mantém tipo original
+}else{
+  preview.innerHTML = "Pré-visualização";
+}
+
+  /* limpa input file (não pode preencher programaticamente) */
+  fileInput.value = "";
+}
+
+function resetForm(){
+
+  fileInput.value = "";
+  preview.innerHTML = "Pré-visualização";
+  diasSel = [];
+
+  document.querySelectorAll(".day").forEach(d=>{
+    d.classList.remove("active");
+  });
+
+  horaInicioInput.value = "00:00";
+  horaFimInput.value = "23:59";
+  produtoVinculado = null;
+document.getElementById("produtoSelecionado").style.display = "none";
+document.getElementById("resultadoProdutos").innerHTML = "";
+document.getElementById("buscaProduto").value = "";
+}
+
+loadCalendarPromos();  
+function cancelEdit(){
+
+  editingPromoId = null;
+
+  resetForm();
+
+  document.getElementById("btnCancelar").style.display = "none";
+  document.getElementById("btnSalvar").innerText = "Salvar Promoção";
+}
+/* ===================== BUFFET ===================== */
+
+let buffetItems=[];
+let currentEdit=null;
+
+async function openBuffetModal(){
+  document.body.classList.add("modal-open");
+  document.getElementById("buffetModal").classList.add("open");
+  await carregarSetores();   // 👈 AQUI
+  loadBuffet();
+}
+
+function closeBuffetModal(){
+  document.body.classList.remove("modal-open");
+  document.getElementById("buffetModal").classList.remove("open");
+}
+
+async function loadBuffet(){
+  const {data}=await sb.from("buffet")
+    .select("id,nome,descricao,foto_url,cardapio,tipo")
+    .order("nome");
+
+  buffetItems=data||[];
+  renderBuffet();
+}
+
+function renderBuffet(){
+
+  const term = (document.getElementById("buscaBuffet").value || "")
+    .toLowerCase();
+
+  const setor = document.getElementById("filtroSetor").value;
+
+  const buffetList = document.getElementById("buffetList");
+
+  buffetList.innerHTML = buffetItems
+    .filter(i =>
+      (i.nome || "").toLowerCase().includes(term) &&
+      (!setor || i.tipo === setor)
+    )
+    .map(i=>`
+      <div class="buffet-item" onclick="selectItem('${i.id}')">
+
+        <img src="${i.foto_url || ''}">
+
+        <div>
+          <b>${i.nome}</b><br>
+          <small>${i.descricao || ''}</small><br>
+          <small style="opacity:.6">${i.tipo || ''}</small>
+        </div>
+
+        <button class="toggle ${i.cardapio?'on':'off'}"
+          onclick="toggleCardapio(event,'${i.id}',${i.cardapio})">
+          ${i.cardapio?'NO CARDÁPIO':'FORA'}
+        </button>
+
+      </div>
+    `).join("");
+}
+
+function selectItem(id){
+  currentEdit=buffetItems.find(i=>i.id===id);
+  editNome.value=currentEdit.nome||"";
+  editDesc.value=currentEdit.descricao||"";
+}
+
+async function toggleCardapio(ev,id,atual){
+  ev.stopPropagation();
+  await sb.from("buffet").update({cardapio:!atual}).eq("id",id);
+  loadBuffet();
+}
+
+async function salvarItem(){
+  if(!currentEdit)return;
+  let foto_url=currentEdit.foto_url;
+
+  const f=editFoto.files[0];
+  if(f){
+    const ext=f.name.split(".").pop();
+    const path=`buffet/${Date.now()}.${ext}`;
+    await sb.storage.from("buffet").upload(path,f);
+    foto_url=sb.storage.from("buffet").getPublicUrl(path).data.publicUrl;
+  }
+
+  await sb.from("buffet")
+    .update({
+      nome:editNome.value,
+      descricao:editDesc.value,
+      foto_url
+    })
+    .eq("id",currentEdit.id);
+
+  loadBuffet();
+}
+async function carregarSetores(){
+  const { data, error } = await sb
+    .from("buffet")
+    .select("tipo")
+    .not("tipo","is",null);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  // pegar apenas valores únicos
+  const tiposUnicos = [...new Set(data.map(i => i.tipo).filter(Boolean))];
+
+  const select = document.getElementById("filtroSetor");
+
+  select.innerHTML = `
+    <option value="">Todos</option>
+    ${tiposUnicos
+      .sort()
+      .map(t => `<option value="${t}">${t}</option>`)
+      .join("")}
+  `;
+}
+
+
+
+/* ================= CALENDÁRIO ================= */
+
+let currentDate = new Date();
+let promosCache = [];
+
+async function loadCalendarPromos(){
+  const { data } = await sb
+    .from("promocoes")
+    .select(`
+      *,
+      produtos (
+        nome,
+        descricao
+      )
+    `);
+
+  promosCache = data || [];
+  renderCalendar();
+}
+
+function renderCalendar(){
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  const startWeekDay = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+
+  const calendar = document.getElementById("calendar");
+  calendar.innerHTML = "";
+
+  const monthName = firstDay.toLocaleString("pt-BR",{month:"long"});
+  document.getElementById("monthTitle").innerText =
+    monthName.charAt(0).toUpperCase()+monthName.slice(1)+" "+year;
+
+  /* 🔥 CABEÇALHO DIAS DA SEMANA */
+  const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+  diasSemana.forEach(d=>{
+    calendar.innerHTML += `
+      <div style="
+        font-weight:900;
+        font-size:12px;
+        text-align:center;
+        padding:6px 0;
+        color:#64748b;">
+        ${d}
+      </div>
+    `;
+  });
+
+  for(let i=0;i<startWeekDay;i++){
+    calendar.innerHTML += `<div></div>`;
+  }
+
+  for(let day=1; day<=totalDays; day++){
+
+    const dateObj = new Date(year, month, day);
+    const weekDay = dateObj.getDay() === 0 ? 7 : dateObj.getDay();
+
+    const promosDia = promosCache.filter(p =>
+      p.dias_semana?.includes(weekDay)
+    );
+
+    const ativas = promosDia.filter(p=>p.ativo).length;
+    const inativas = promosDia.filter(p=>!p.ativo).length;
+
+    calendar.innerHTML += `
+      <div class="calendar-day" onclick="openDayModal(${day})">
+        <div class="calendar-day-number">${day}</div>
+
+        ${promosDia.length ? `
+          <div class="calendar-count">
+            <span class="count-on">${ativas} Ativas</span>
+            <span class="count-off">${inativas} Off</span>
+          </div>
+        ` : ``}
+      </div>
+    `;
+  }
+}
+
+function prevMonth(){
+  currentDate.setMonth(currentDate.getMonth()-1);
+  renderCalendar();
+}
+
+function nextMonth(){
+  currentDate.setMonth(currentDate.getMonth()+1);
+  renderCalendar();
+}
+
+function openDayModal(day){
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const dateObj = new Date(year, month, day);
+  const weekDay = dateObj.getDay() === 0 ? 7 : dateObj.getDay();
+
+  const promosDia = promosCache.filter(p =>
+    p.dias_semana?.includes(weekDay)
+  );
+
+  if(!promosDia.length){
+    alert("Nenhuma promoção neste dia.");
+    return;
+  }
+
+  document.getElementById("dayModal").classList.add("open");
+
+  document.getElementById("dayContent").innerHTML = `
+    <div class="day-header">
+      <h2>Promoções do dia ${day}</h2>
+      <button class="day-close" onclick="closeDayModal()">X</button>
+    </div>
+
+    <div class="day-list">
+      ${promosDia.map(p=>`
+        <div class="day-card">
+
+          <div class="day-media">
+            ${p.tipo==="VIDEO"
+              ? `<video src="${p.url}" autoplay muted loop></video>`
+              : `<img src="${p.url}">`}
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;">
+
+            <div class="flag ${p.ativo?'on':'off'}">
+              ${p.ativo?'ATIVA':'DESATIVADA'}
+            </div>
+
+            <div><b>Horário:</b> ${p.hora_inicio} → ${p.hora_fim}</div>
+
+            ${p.produtos ? `
+              <div>
+                <b>Produto:</b> ${p.produtos.nome}
+                ${p.produtos.descricao ? `
+                  <div style="font-size:13px;color:#64748b;">
+                    ${p.produtos.descricao}
+                  </div>
+                ` : ``}
+              </div>
+            ` : ``}
+
+            <div class="day-actions">
+              <button class="btn-soft"
+                onclick="editarPromo('${p.id}');closeDayModal()">
+                Editar
+              </button>
+
+              <button class="btn-soft"
+                onclick="togglePromo('${p.id}',${p.ativo});loadCalendarPromos();">
+                ${p.ativo?'Desativar':'Ativar'}
+              </button>
+
+              <button class="btn-danger"
+                onclick="delPromo('${p.id}');loadCalendarPromos();">
+                Excluir
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function closeDayModal(){
+  document.getElementById("dayModal").classList.remove("open");
+}
+</script>
+
+
+<div id="dayModal" class="day-modal">
+  <div class="day-box" id="dayContent"></div>
+</div>
+</body>
+</html>

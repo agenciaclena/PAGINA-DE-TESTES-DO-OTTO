@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>Mercatto • Prompt CMS</title>
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<style>
+
+/* =====================================
+   RESET
+===================================== */
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+html,body{
+height:100%;
+}
+
+/* =====================================
+   VARIÁVEIS
+===================================== */
+
+:root{
+
+--bg:#020617;
+--card:#0f172a;
+--card-hover:#172036;
+
+--border:#1e293b;
+
+--text:#e2e8f0;
+--muted:#94a3b8;
+
+--green:#22c55e;
+--red:#ef4444;
+--blue:#3b82f6;
+
+--radius:14px;
+
+--shadow:
+0 10px 25px rgba(0,0,0,.35);
+
+--shadow-strong:
+0 30px 80px rgba(0,0,0,.7);
+
+}
+
+/* =====================================
+   BODY
+===================================== */
+
+body{
+
+font-family:Inter;
+
+background:var(--bg);
+color:var(--text);
+
+padding:22px;
+
+-webkit-font-smoothing:antialiased;
+
+}
+
+/* =====================================
+   HEADER
+===================================== */
+
+.header{
+
+display:flex;
+align-items:center;
+justify-content:space-between;
+
+margin-bottom:22px;
+
+}
+
+.title{
+
+font-size:24px;
+font-weight:800;
+letter-spacing:.3px;
+
+}
+
+/* =====================================
+   BOTÕES
+===================================== */
+
+.btn{
+
+border:none;
+
+padding:10px 16px;
+
+border-radius:10px;
+
+font-weight:600;
+font-size:13px;
+
+cursor:pointer;
+
+transition:.18s;
+
+display:inline-flex;
+align-items:center;
+justify-content:center;
+
+}
+
+.btn:hover{
+
+transform:translateY(-1px);
+opacity:.9;
+
+}
+
+.green{background:var(--green);color:white}
+.red{background:var(--red);color:white}
+.blue{background:var(--blue);color:white}
+
+/* =====================================
+   BUSCA
+===================================== */
+
+.search{
+margin-bottom:24px;
+}
+
+.search input{
+
+width:100%;
+
+background:#020617;
+
+border:1px solid var(--border);
+
+padding:14px;
+
+border-radius:12px;
+
+font-size:14px;
+
+color:white;
+
+transition:.2s;
+
+}
+
+.search input:focus{
+
+outline:none;
+
+border-color:#3b82f6;
+
+box-shadow:0 0 0 2px rgba(59,130,246,.2);
+
+}
+
+/* =====================================
+   LISTA
+===================================== */
+
+.lista{
+
+display:flex;
+flex-direction:column;
+
+gap:16px;
+
+}
+
+/* =====================================
+   CARD
+===================================== */
+
+.card{
+
+background:var(--card);
+
+border:1px solid var(--border);
+
+border-radius:var(--radius);
+
+padding:20px;
+
+cursor:grab;
+
+box-shadow:var(--shadow);
+
+transition:.18s;
+
+}
+
+.card:hover{
+
+transform:translateY(-3px);
+
+background:var(--card-hover);
+
+border-color:#334155;
+
+}
+
+/* =====================================
+   TEXTO
+===================================== */
+
+.nome{
+
+font-size:16px;
+font-weight:700;
+
+margin-bottom:6px;
+
+}
+
+.preview{
+
+font-size:13px;
+
+color:var(--muted);
+
+line-height:1.5;
+
+white-space:pre-wrap;
+
+max-height:120px;
+
+overflow:hidden;
+
+}
+
+/* =====================================
+   AÇÕES
+===================================== */
+
+.acoes{
+
+display:flex;
+
+gap:8px;
+
+margin-top:12px;
+
+flex-wrap:wrap;
+
+}
+
+/* =====================================
+   MODAL
+===================================== */
+
+.modal{
+
+position:fixed;
+
+inset:0;
+
+background:rgba(0,0,0,.92);
+
+display:none;
+
+align-items:center;
+justify-content:center;
+
+padding:20px;
+
+z-index:999;
+
+}
+
+/* =====================================
+   MODAL BOX
+===================================== */
+
+.modal-box{
+
+background:#020617;
+
+border:1px solid var(--border);
+
+border-radius:18px;
+
+width:100%;
+max-width:1200px;
+
+height:90vh;
+
+display:flex;
+flex-direction:column;
+
+box-shadow:var(--shadow-strong);
+
+overflow:hidden;
+
+}
+
+/* =====================================
+   INPUT MODAL
+===================================== */
+
+.modal-box input{
+
+background:#020617;
+
+border:1px solid var(--border);
+
+color:white;
+
+padding:12px;
+
+border-radius:10px;
+
+margin:12px;
+
+}
+
+/* =====================================
+   SEARCH POPUP
+===================================== */
+
+.popup-search{
+
+display:flex;
+
+gap:8px;
+
+padding:12px;
+
+border-bottom:1px solid var(--border);
+
+}
+
+.popup-search input{
+
+flex:1;
+
+padding:10px;
+
+border-radius:10px;
+
+border:1px solid var(--border);
+
+background:#020617;
+
+color:white;
+
+}
+
+/* =====================================
+   EDITOR
+===================================== */
+
+.editor{
+
+flex:1;
+
+display:flex;
+
+background:#020617;
+
+border-top:1px solid var(--border);
+border-bottom:1px solid var(--border);
+
+overflow:hidden;
+
+}
+
+/* =====================================
+   LINHAS
+===================================== */
+
+.linhas{
+
+width:60px;
+
+background:#020617;
+
+border-right:1px solid var(--border);
+
+color:#64748b;
+
+font-family:JetBrains Mono;
+
+font-size:12px;
+
+text-align:right;
+
+padding:12px 8px;
+
+overflow:hidden;
+
+user-select:none;
+
+line-height:1.7;
+
+}
+
+/* =====================================
+   EDITOR WRAPPER
+===================================== */
+
+.editor-wrapper{
+
+position:relative;
+
+flex:1;
+
+display:flex;
+
+height:100%;
+
+}
+
+/* =====================================
+   HIGHLIGHT
+===================================== */
+
+#highlight{
+
+position:absolute;
+
+top:0;
+left:0;
+
+width:100%;
+min-height:100%;
+
+pointer-events:none;
+
+white-space:pre-wrap;
+
+font-family:JetBrains Mono;
+
+font-size:14px;
+
+padding:12px;
+
+line-height:1.7;
+
+color:transparent;
+
+z-index:1;
+
+overflow:hidden;
+
+}
+
+/* =====================================
+   TEXTAREA
+===================================== */
+
+textarea{
+
+flex:1;
+
+width:100%;
+height:100%;
+
+background:#020617;
+
+border:none;
+
+outline:none;
+
+color:#e2e8f0;
+
+font-family:JetBrains Mono;
+
+font-size:14px;
+
+padding:12px;
+
+resize:none;
+
+line-height:1.7;
+
+position:relative;
+
+z-index:2;
+
+overflow:auto;
+
+}
+
+/* =====================================
+   HIGHLIGHT SEARCH
+===================================== */
+
+#highlight mark{
+
+background:#facc15;
+
+color:#000;
+
+border-radius:3px;
+
+}
+
+/* =====================================
+   INFO
+===================================== */
+
+.info{
+
+display:flex;
+
+justify-content:space-between;
+
+padding:10px 16px;
+
+font-size:12px;
+
+color:var(--muted);
+
+border-top:1px solid var(--border);
+
+}
+
+/* =====================================
+   FOOTER
+===================================== */
+
+.modal-actions{
+
+display:flex;
+
+gap:10px;
+
+padding:12px;
+
+border-top:1px solid var(--border);
+
+}
+
+/* =====================================
+   SCROLLBAR PREMIUM
+===================================== */
+
+::-webkit-scrollbar{
+width:8px;
+height:8px;
+}
+
+::-webkit-scrollbar-track{
+background:#020617;
+}
+
+::-webkit-scrollbar-thumb{
+
+background:#1e293b;
+
+border-radius:10px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+background:#334155;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<div class="title">Prompt CMS</div>
+<button class="btn green" onclick="novo()">NOVO COMANDO</button>
+</div>
+
+<div class="search">
+<input id="buscar" placeholder="Buscar prompt">
+</div>
+
+<div id="lista" class="lista"></div>
+
+<!-- MODAL -->
+
+<div id="modal" class="modal">
+
+<div class="modal-box">
+
+<input id="nome" placeholder="Nome do prompt" style="margin:12px">
+
+<div class="popup-search">
+<input id="buscarPopup" placeholder="Buscar dentro do prompt">
+<button class="btn blue" onclick="prev()">↑</button>
+<button class="btn blue" onclick="next()">↓</button>
+</div>
+
+<div class="editor">
+
+<div id="linhas" class="linhas"></div>
+
+<div class="editor-wrapper">
+
+<pre id="highlight"></pre>
+
+<textarea id="prompt"></textarea>
+
+</div>
+
+</div>
+
+<div class="info">
+<div id="chars">0 caracteres</div>
+<div id="words">0 palavras</div>
+</div>
+
+<div class="modal-actions">
+<button class="btn green" onclick="salvar()">Salvar</button>
+<button class="btn red" onclick="fechar()">Cancelar</button>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* SUPABASE */
+
+const db=supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+/* ELEMENTOS */
+
+const lista=document.getElementById("lista")
+const modal=document.getElementById("modal")
+const nome=document.getElementById("nome")
+const prompt=document.getElementById("prompt")
+const linhas=document.getElementById("linhas")
+const buscar=document.getElementById("buscar")
+const buscarPopup=document.getElementById("buscarPopup")
+
+let editId=null
+let dados=[]
+
+/* LINHAS */
+
+function atualizarLinhas(){
+
+const total=prompt.value.split("\n").length
+let html=""
+
+for(let i=1;i<=total;i++){
+html+=i+"<br>"
+}
+
+linhas.innerHTML=html
+
+}
+
+/* CONTADORES */
+
+let timer
+
+prompt.addEventListener("input",()=>{
+
+chars.innerText=prompt.value.length+" caracteres"
+
+let p=prompt.value.trim()
+
+if(!p)p=0
+else p=p.split(/\s+/).length
+
+words.innerText=p+" palavras"
+
+atualizarLinhas()
+
+clearTimeout(timer)
+
+timer=setTimeout(()=>{
+atualizarHighlight()
+},250)
+
+})
+
+prompt.addEventListener("scroll",()=>{
+linhas.scrollTop = prompt.scrollTop
+highlightLayer.scrollTop = prompt.scrollTop
+})
+/* CARREGAR */
+
+async function carregar(){
+
+const {data}=await db
+.from("prompts_mercatto")
+.select("id,nome,prompt,ativo,ordem")
+.order("ordem",{ascending:true})
+
+dados=data||[]
+render()
+
+}
+
+/* RENDER */
+
+function render(){
+
+lista.innerHTML=""
+
+let filtrados=dados
+
+if(buscar.value){
+
+const b=buscar.value.toLowerCase()
+
+filtrados=dados.filter(p=>
+(p.nome||"").toLowerCase().includes(b)||
+(p.prompt||"").toLowerCase().includes(b)
+)
+
+}
+
+filtrados.forEach(p=>{
+
+const card=document.createElement("div")
+card.className="card"
+card.dataset.id=p.id
+
+card.innerHTML=`
+
+<div class="nome">${p.nome}</div>
+
+<div class="preview">${(p.prompt||"").substring(0,300)}</div>
+
+<div class="acoes">
+
+<button class="btn blue" onclick="editar('${p.id}')">Editar</button>
+
+<button class="btn green" onclick="toggle('${p.id}',${p.ativo})">
+${p.ativo?"Ativo":"Inativo"}
+</button>
+
+<button class="btn red" onclick="remover('${p.id}')">Excluir</button>
+
+</div>
+`
+
+lista.appendChild(card)
+
+})
+
+ativarDrag()
+
+}
+
+/* DRAG */
+let sortable
+
+function ativarDrag(){
+
+if(sortable) return
+
+sortable = new Sortable(lista,{
+animation:150,
+onEnd:salvarOrdem
+})
+
+}
+
+/* SALVAR ORDEM */
+
+async function salvarOrdem(){
+
+const cards=[...document.querySelectorAll(".card")]
+
+const updates = cards.map((c,i)=>({
+id:c.dataset.id,
+ordem:i
+}))
+
+await db
+.from("prompts_mercatto")
+.upsert(updates)
+
+carregar()
+
+}
+
+/* CRUD */
+
+function novo(){
+editId=null
+nome.value=""
+prompt.value=""
+atualizarLinhas()
+abrir()
+}
+
+async function editar(id){
+
+const {data}=await db
+.from("prompts_mercatto")
+.select("id,nome,prompt,ativo,ordem")
+.eq("id",id)
+.single()
+
+editId=id
+nome.value=data.nome
+prompt.value=data.prompt
+
+atualizarLinhas()
+
+abrir()
+
+}
+
+async function salvar(){
+
+const n=nome.value.trim()
+const p=prompt.value.trim()
+
+if(!n||!p){
+alert("Preencha tudo")
+return
+}
+
+if(editId){
+
+await db
+.from("prompts_mercatto")
+.update({nome:n,prompt:p})
+.eq("id",editId)
+
+}else{
+
+await db
+.from("prompts_mercatto")
+.insert({
+nome:n,
+prompt:p,
+ativo:true,
+ordem:dados.length
+})
+
+}
+
+fechar()
+carregar()
+
+}
+
+async function remover(id){
+
+if(!confirm("Excluir?"))return
+
+await db
+.from("prompts_mercatto")
+.delete()
+.eq("id",id)
+
+carregar()
+
+}
+
+async function toggle(id,a){
+
+await db
+.from("prompts_mercatto")
+.update({ativo:!a})
+.eq("id",id)
+
+carregar()
+
+}
+
+
+
+/* MODAL */
+
+function abrir(){modal.style.display="flex"}
+function fechar(){modal.style.display="none"}
+
+/* BUSCA INTERNA */
+let resultados=[]
+let index=0
+
+buscarPopup.addEventListener("input",atualizarHighlight)
+prompt.addEventListener("input",atualizarHighlight)
+
+const highlightLayer = document.getElementById("highlight")
+
+function atualizarHighlight(){
+
+const termo = buscarPopup.value.toLowerCase()
+
+if(!termo){
+highlightLayer.innerText = prompt.value
+resultados=[]
+return
+}
+
+const texto = prompt.value.toLowerCase()
+
+resultados=[]
+index=0
+
+let pos = texto.indexOf(termo)
+
+while(pos!=-1){
+resultados.push(pos)
+pos = texto.indexOf(termo,pos+1)
+}
+
+const textoOriginal = prompt.value
+
+const regex = new RegExp(termo,"gi")
+
+highlightLayer.innerHTML =
+textoOriginal.replace(regex,m=>`<mark>${m}</mark>`)
+
+highlightLayer.style.height = prompt.scrollHeight + "px"
+
+}
+
+
+
+function next(){
+
+if(!resultados.length)return
+
+index++
+if(index>=resultados.length)index=0
+
+highlight()
+
+}
+
+function prev(){
+
+if(!resultados.length)return
+
+index--
+if(index<0)index=resultados.length-1
+
+highlight()
+
+}
+
+/* BUSCA */
+
+buscar.addEventListener("input",render)
+
+/* CTRL S */
+
+document.addEventListener("keydown",e=>{
+
+if(e.ctrlKey && e.key==="s"){
+
+e.preventDefault()
+salvar()
+
+}
+
+})
+
+/* INIT */
+
+carregar()
+
+/* PWA */
+
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("sw.js")
+}
+
+</script>
+
+</body>
+</html>

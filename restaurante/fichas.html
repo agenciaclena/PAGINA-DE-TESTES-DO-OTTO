@@ -1,0 +1,3410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+
+<title>Fichas Técnicas</title>
+
+<link rel="icon" href="logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#14c8a8;
+  --primary-dark:#0ea58b;
+
+  --success:#10b981;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+
+  --bg:#14c8a8;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+
+  --radius-lg:26px;
+  --radius-md:14px;
+  --radius-sm:8px;
+
+  --shadow-xs:0 2px 6px rgba(0,0,0,.06);
+  --shadow-sm:0 6px 16px rgba(0,0,0,.08);
+  --shadow-md:0 18px 40px rgba(0,0,0,.12);
+  --shadow-lg:0 40px 90px rgba(0,0,0,.35);
+}
+
+
+*{
+  box-sizing:border-box;
+  -webkit-font-smoothing:antialiased;
+}
+
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, #eef2ff 0%, transparent 60%),
+    radial-gradient(1200px 500px at 110% 10%, #ecfeff 0%, transparent 60%),
+    var(--bg);
+  color:var(--text);
+}
+
+body.modal-open{
+  overflow:hidden;
+}
+
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  gap:20px;
+  padding:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:22px;
+  box-shadow:var(--shadow-md);
+  overflow:hidden;
+  cursor:pointer;
+  transition:.18s ease;
+  border:1px solid rgba(0,0,0,.03);
+}
+
+.card:hover{
+  transform:translateY(-4px) scale(1.005);
+  box-shadow:0 28px 70px rgba(0,0,0,.22);
+}
+
+.card img{
+  width:100%;
+  height:130px;  
+  object-fit:cover;
+  transition:.3s ease;
+}
+
+.card:hover img{
+  transform:scale(1.04);
+}
+
+.card-body{
+  padding:12px;  
+}
+
+.card-body h3{
+  margin:0 0 6px;
+  font-weight:900;
+  font-size:16px;
+  letter-spacing:-.01em;
+
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+
+  min-height:42px;  
+}
+
+
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:6px;
+}
+
+.badges.primary{ margin-top:6px; }
+.badges.secondary{ margin-top:10px; }
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#3730a3;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.02em;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);
+  backdrop-filter:blur(2px);
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(
+    180deg,
+    rgba(15,23,42,.65),
+    rgba(15,23,42,.75)
+  );
+  backdrop-filter:blur(6px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+}
+
+.modal-box{
+  background:#fff;
+  width:96vw;
+  max-width:1440px;
+  max-height:92vh;
+  border-radius:26px;
+  overflow:visible;
+  display:flex;
+  flex-direction:column;
+  box-shadow:var(--shadow-lg);
+  animation:modalIn .2s ease;
+  position:relative;
+}
+
+@keyframes modalIn{
+  from{ opacity:0; transform:scale(.96) }
+  to{ opacity:1; transform:scale(1) }
+}
+
+.modal-header{
+  display:grid;
+  grid-template-columns:34% 66%;
+  gap:22px;
+  padding:22px 26px;
+  border-bottom:1px solid var(--border);
+  background:
+    radial-gradient(500px 200px at 10% -20%, #eef2ff 0%, transparent 60%),
+    #fff;
+}
+
+.modal-left{
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
+  background:#ffffff;
+  display:flex;
+  flex-direction:column;
+}
+
+.modal-img{
+  width:100%;
+  height:320px; /* 👈 AQUI */
+  object-fit:cover;
+  background:#ffffff;
+  display:block;
+}
+
+/* =========================================================
+   COLUNA DIREITA DO MODAL
+========================================================= */
+.modal-main{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  padding:10px 6px 18px;
+  overflow:visible;
+  position:relative;
+  z-index:2;
+}
+
+.modal-main h2{
+  margin:0;
+  font-size:34px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+
+/* =========================================================
+   CORPO DO MODAL
+========================================================= */
+.modal-body{
+  padding:10px 4px 26px;
+  overflow-y:auto;
+  max-height:calc(92vh - 220px);
+  scrollbar-gutter:stable;
+}
+
+.modal-body::-webkit-scrollbar{ width:8px }
+.modal-body::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,#c7d2fe,#a5b4fc);
+  border-radius:8px;
+}
+
+/* =========================================================
+   TEXTOS DO MODAL
+========================================================= */
+.modal-body h3{
+  margin:16px 0 8px;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+.modal-body p{
+  margin:6px 0;
+  font-size:14px;
+  color:var(--muted);
+}
+
+.modal-body hr{
+  border:none;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+  margin:14px 0;
+}
+
+/* =========================================================
+   INGREDIENTES / IMPOSTOS
+========================================================= */
+.ing{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:14px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-size:14px;
+  align-items:center;
+  margin-bottom:8px;
+  background:#fff;
+}
+
+.ing b{ font-weight:800 }
+.ing small{ color:var(--muted) }
+
+/* =========================================================
+   PRECIFICAÇÃO
+========================================================= */
+.precificacao{
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin:16px 0;
+  box-shadow:var(--shadow-xs);
+}
+
+/* =========================================================
+   INPUTS / SELECTS
+========================================================= */
+input, select, textarea{
+  height:38px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  padding:0 12px;
+  font-size:13px;
+  font-weight:700;
+  width:100%;
+  background:#fff;
+}
+
+textarea{
+  height:auto;
+  min-height:70px;
+  padding:14px;
+  resize:vertical;
+}
+
+input:focus, select:focus, textarea:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(37,99,235,.18);
+}
+
+input[readonly]{
+  background:#e5e7eb;
+}
+
+/* =========================================================
+   BOTÕES (PADRÃO ÚNICO)
+========================================================= */
+button{
+  font-family:Inter,sans-serif;
+  border:none;
+  cursor:pointer;
+}
+
+.btn-add{
+  height:38px;
+  padding:0 14px;
+  font-size:11px;
+  border-radius:10px;
+  background:#0f172a;
+  color:#fff;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  box-shadow:0 6px 16px rgba(15,23,42,.25);
+  transition:.15s ease;
+}
+
+.btn-add:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 26px rgba(15,23,42,.35);
+}
+
+.btn-icon{
+  border-radius:8px;
+  padding:6px 10px;
+  font-size:13px;
+  font-weight:800;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+
+.btn-edit{
+  background:#f1f5f9;
+  color:#0f172a;
+  border:1px solid var(--border);
+}
+
+.btn-delete{
+  background:#fee2e2;
+  color:#991b1b;
+  border:1px solid #fecaca;
+}
+
+/* =========================================================
+   FECHAR MODAL
+========================================================= */
+.close{
+  position:absolute;
+  top:14px;
+  right:18px;
+  font-size:26px;
+  cursor:pointer;
+  font-weight:900;
+  color:#fff;
+  z-index:10;
+  text-shadow:0 4px 14px rgba(0,0,0,.7);
+}
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+@media(max-width:520px){
+  .grid{
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    padding:14px;
+  }
+
+  .card img{ height:110px }
+
+  .modal{
+    align-items:flex-end;
+  }
+
+  .modal-box{
+    max-width:100%;
+    height:92vh;
+    border-radius:22px 22px 0 0;
+  }
+
+  .modal-header{
+    grid-template-columns:1fr;
+  }
+
+  .modal-left{ height:180px }
+
+  .modal-body{ padding:18px }
+
+  .close{
+    top:10px;
+    right:14px;
+    font-size:22px;
+  }
+
+  .ing{
+    grid-template-columns:1fr auto;
+    gap:8px;
+  }
+
+  .btn-add{ width:100% }
+}
+/* ====== SEÇÕES ORGANIZADAS ====== */
+.secao{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin:14px 0;
+  box-shadow:var(--shadow-xs);
+}
+
+.secao h3{
+  margin:0 0 10px;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+/* ====== GRID COMPACTO ====== */
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+/* ====== TABELA ESTILO PLANILHA ====== */
+.table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+.table thead th{
+  text-align:left;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  padding:6px 8px;
+  border-bottom:1px solid var(--border);
+}
+
+.table tbody td{
+  padding:4px 6px;
+  border-bottom:1px solid var(--border);
+  vertical-align:middle;
+  font-size:12px;
+}
+
+.table tbody tr:hover{
+  background:#f8fafc;
+}
+
+.table .acoes{
+  text-align:right;
+  white-space:nowrap;
+}
+
+/* ====== RESUMO FINANCEIRO ====== */
+.resumo{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.resumo .box{
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px 8px;
+  font-size:11px;
+}
+
+.resumo .box b{
+  display:block;
+  font-size:13px;
+  margin-top:2px;
+}
+
+/* ====== NUTRIÇÃO COMPACTA ====== */
+.nutri-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.nutri-item{
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px;
+  font-size:13px;
+}
+/* =========================
+   TABLET (768px – 1100px)
+========================= */
+@media (min-width: 720px) and (max-width: 1100px){
+
+  .grid{
+    grid-template-columns:repeat(3, 1fr);
+  }
+
+  .modal-box{
+    width:95vw;
+    max-height:90vh;
+  }
+
+  .modal-header{
+    grid-template-columns:40% 60%;
+  }
+
+  .modal-main h2{
+    font-size:26px;
+  }
+
+  .resumo{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .card-stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .stat{
+    font-size:11px;
+  }
+
+}
+
+  .filters input{
+    width:100%;
+  }
+
+  .filters select{
+    width:100%;
+  }
+
+}
+
+
+   
+/* ====== RESPONSIVO ====== */
+@media(max-width:720px){
+  .resumo{ grid-template-columns:1fr 1fr; }
+  .nutri-grid{ grid-template-columns:1fr 1fr; }
+}   
+
+
+
+
+/* versão compacta do card de precificação */
+.precificacao.compact{
+  padding:12px;
+  margin:0;
+}
+
+.precificacao.compact label{
+  font-weight:900;
+  font-size:12px;
+  display:block;
+  margin-bottom:6px;
+}
+
+.precificacao.compact input{
+  height:40px;
+  font-size:13px;
+  border-radius:10px;
+}
+
+.precificacao.compact small{
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  color:var(--muted);
+}
+
+/* no mobile, volta pra 1 coluna */
+@media(max-width:720px){
+  .grid-2{
+    grid-template-columns:1fr;
+  }
+}
+
+
+
+
+/* linha compacta para adicionar ingrediente */
+.precificacao.compact-line{
+  padding:12px;
+}
+
+.line-add{
+  display:grid;
+  grid-template-columns: 2fr .7fr .7fr 180px;
+  gap:10px;
+  align-items:center;
+}
+
+
+  
+.line-select{
+  height:40px;
+  border-radius:12px;
+  font-size:13px;
+}
+
+.line-qtd{
+  height:40px;
+  font-size:13px;
+  text-align:center;
+}
+
+.line-unidade{
+  height:40px;
+  font-size:12px;
+  text-align:center;
+  background:#f1f5f9 !important;
+}
+
+.btn-line{
+  height:40px;
+  width:44px;
+  padding:0;
+  border-radius:12px;
+  font-size:18px;
+  font-weight:900;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* mobile: quebra em 2 linhas */
+@media(max-width:720px){
+  .line-add{
+    grid-template-columns:1fr 1fr;
+  }
+
+.btn-line{
+  height:40px;
+  min-width:44px;
+  padding:0 14px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+}
+/* ===== CARDS FINANCEIROS COMPACTOS ===== */
+.card-stats{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:8px;
+  margin-top:10px;
+}
+
+.stat{
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px 8px;     /* 👈 menos padding */
+  font-size:10px;     /* 👈 fonte menor */
+  line-height:1.1;
+  box-shadow:var(--shadow-xs);
+}
+
+.stat b{
+  display:block;
+  margin-top:4px;
+  font-size:13px;
+  font-weight:900;
+}
+
+.stat.green{
+  background:#ecfdf5;
+  border-color:#a7f3d0;
+  color:#065f46;
+}
+
+.stat.red{
+  background:#fef2f2;
+  border-color:#fecaca;
+  color:#991b1b;
+}
+
+.stat.blue{
+  background:#eef2ff;
+  border-color:#c7d2fe;
+  color:#3730a3;
+}
+
+.stat.orange{
+  background:#fff7ed;
+  border-color:#fed7aa;
+  color:#9a3412;
+}
+
+/* mobile: 2 colunas */
+@media(max-width:520px){
+  .card-stats{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card-stats{
+  min-height:76px;  /* 🔥 cabe melhor no 100% */
+}
+.stat b{
+  min-height:14px;
+  display:block;
+}
+
+.desc-card{
+  font-size:12px;          /* 🔥 fonte menor */
+  color:#64748b;
+  line-height:1.25;
+  margin:2px 0 6px;       /* 🔥 menos margem */
+
+  display:-webkit-box;
+  -webkit-line-clamp:1;   /* 🔥 só 1 linha no card */
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+
+  min-height:18px;        /* 🔥 menos altura fixa */
+}
+
+/* =========================
+   BOTÃO VOLTAR AO TOPO
+========================= */
+#btnTop{
+  position:fixed;
+  bottom:30px;
+  right:30px;
+
+  width:52px;
+  height:52px;
+
+  border-radius:50%;
+  border:none;
+
+background:#0f172a;
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+
+  box-shadow:0 12px 30px rgba(37,99,235,.4);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  opacity:0;
+  pointer-events:none;
+  transition:.25s ease;
+  z-index:60;
+}
+
+#btnTop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+/* =========================================
+   OVERLAY RESTAURANTE ORIGINAL
+========================================= */
+
+.overlay-loading{
+  position:fixed;
+  inset:0;
+  background:#0f172a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:9999;
+  overflow:hidden;
+}
+
+.overlay-loading.hidden{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .6s ease;
+}
+
+/* Fundo ambiente animado */
+.overlay-ambient{
+  position:absolute;
+  width:200%;
+  height:200%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,120,0,.15), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(59,130,246,.15), transparent 40%);
+  animation:ambientMove 8s linear infinite;
+}
+
+@keyframes ambientMove{
+  0%{ transform:translate(0,0); }
+  50%{ transform:translate(-5%, -5%); }
+  100%{ transform:translate(0,0); }
+}
+
+/* Centro */
+.overlay-center{
+  position:relative;
+  text-align:center;
+  color:#fff;
+  z-index:2;
+}
+
+.overlay-center h2{
+  margin-top:24px;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:-.02em;
+}
+
+.overlay-center p{
+  margin-top:10px;
+  font-size:14px;
+  opacity:.7;
+}
+
+
+/* Talheres + prato decorativos */
+.cutlery{
+  position:absolute;
+  width:300px;
+  height:300px;
+  animation:rotateSlow 12s linear infinite;
+}
+
+@keyframes rotateSlow{
+  to{ transform:rotate(360deg); }
+}
+
+/* Garfo */
+.fork{
+  position:absolute;
+  left:0;
+  top:50%;
+  width:8px;
+  height:120px;
+  background:#ffffff15;
+  border-radius:4px;
+  transform:translateY(-50%);
+}
+
+/* Faca */
+.knife{
+  position:absolute;
+  right:0;
+  top:50%;
+  width:8px;
+  height:120px;
+  background:#ffffff15;
+  border-radius:4px;
+  transform:translateY(-50%);
+}
+
+/* Prato */
+.plate{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:160px;
+  height:160px;
+  border-radius:50%;
+  border:4px solid rgba(255,255,255,.08);
+  transform:translate(-50%,-50%);
+}
+
+
+
+
+
+
+/* =========================================
+   FILTROS — MENU ESCURO PREMIUM
+========================================= */
+
+.filters{
+  background:#14c8a8; /* mesma cor do tema */
+  padding:10px 14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border-bottom:1px solid #1e293b;
+  position:sticky;
+  top:0;
+  z-index:50;
+  flex-wrap:wrap;
+}
+
+/* INPUT BUSCA */
+.filters input{
+  flex:1;
+  min-width:240px;
+  height:34px;
+
+  border-radius:8px;
+  border:1px solid 000000;
+
+  padding:0 10px;
+
+  font-size:12px;
+  font-weight:600;
+
+  background:#ffffff;
+  color:#000000;
+
+  outline:none;
+}
+
+.filters input::placeholder{
+  color:#94a3b8;
+}
+
+/* SELECTS */
+.filters select{
+  width:150px;
+  height:34px;
+
+  border-radius:8px;
+  border:1px solid #000000;
+
+  padding:0 8px;
+
+  font-size:12px;
+  font-weight:600;
+
+  background:#ffffff;
+  color:#000000;
+
+  outline:none;
+}
+
+/* HOVER */
+.filters select:hover,
+.filters input:hover{
+  border-color:#475569;
+}
+
+/* FOCO */
+.filters input:focus,
+.filters select:focus{
+  border-color:#3b82f6;
+  box-shadow:0 0 0 2px rgba(59,130,246,.2);
+}
+
+/* MOBILE */
+@media (max-width:600px){
+
+  .filters input{
+    flex:1 1 100%;
+    min-width:0;
+  }
+
+  .filters select{
+    width:48%;
+  }
+
+}
+
+.btn-cadastrar{
+
+height:34px;
+padding:0 16px;
+
+border-radius:8px;
+
+background:#16a34a;
+color:white;
+
+font-size:12px;
+font-weight:800;
+letter-spacing:.04em;
+
+border:none;
+
+cursor:pointer;
+
+box-shadow:0 8px 18px rgba(22,163,74,.35);
+
+transition:.15s ease;
+
+}
+
+.btn-cadastrar:hover{
+
+transform:translateY(-1px);
+
+box-shadow:0 12px 26px rgba(22,163,74,.45);
+
+}.popupCadastro{
+
+position:fixed;
+inset:0;
+
+background:rgba(15,23,42,.75);
+backdrop-filter:blur(6px);
+
+display:none;
+align-items:center;
+justify-content:center;
+
+z-index:200;
+
+}
+
+.popupCadastroBox{
+
+width:95vw;
+max-width:1400px;
+height:92vh;
+
+background:#fff;
+
+border-radius:24px;
+
+box-shadow:0 40px 100px rgba(0,0,0,.45);
+
+overflow:hidden;
+
+display:flex;
+flex-direction:column;
+
+animation:popupIn .18s ease;
+
+}
+
+@keyframes popupIn{
+from{transform:scale(.96);opacity:0}
+to{transform:scale(1);opacity:1}
+}
+
+.popupCadastroHeader{
+
+height:60px;
+
+display:flex;
+align-items:center;
+justify-content:space-between;
+
+padding:0 20px;
+
+font-weight:800;
+font-size:14px;
+
+border-bottom:1px solid #e5e7eb;
+
+background:#f8fafc;
+
+}
+
+.popupCadastroHeader button{
+
+border:none;
+background:#ef4444;
+
+color:white;
+
+width:34px;
+height:34px;
+
+border-radius:8px;
+
+font-size:16px;
+font-weight:900;
+
+cursor:pointer;
+
+}
+
+.popupCadastro iframe{
+
+flex:1;
+border:none;
+
+}
+
+
+.foto-upload{
+  background:#f8fafc;
+  border-top:1px solid var(--border);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.foto-upload input{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px;
+}
+
+
+  
+
+.foto-upload label{
+  font-weight:800;
+  font-size:12px;
+  display:block;
+  margin-bottom:6px;
+}
+
+.foto-upload input{
+  width:100%;
+  font-size:12px;
+}
+
+
+
+#historicoBox{
+  background:#ffffff;
+  color:#0f172a;
+  padding:12px;
+
+  max-height:220px;
+  overflow-y:auto;
+
+  font-size:12px;
+  border-top:1px solid var(--border);
+}
+
+#historicoBox::-webkit-scrollbar{
+width:6px;
+}
+
+#historicoBox::-webkit-scrollbar-thumb{
+  background:#14c8a8;
+border-radius:6px;
+}
+
+.h-item{
+display:flex;
+justify-content:space-between;
+gap:10px;
+padding:10px 0;
+border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.h-field{
+opacity:.85;
+font-size:11px;
+margin-top:2px;
+}
+
+.h-restore{
+background:#14c8a8;
+color:#fff;
+font-weight:800;
+border:none;
+color:#fff;
+font-size:10px;
+padding:5px 8px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* =========================
+   DASHBOARD FINANCEIRO
+========================= */
+
+.financeiro-dashboard{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+  margin-top:14px;
+}
+
+.fin-card{
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px;
+  font-size:12px;
+  box-shadow:var(--shadow-xs);
+}
+
+.fin-card span{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+}
+
+.fin-card b{
+  display:block;
+  font-size:18px;
+  font-weight:900;
+  margin-top:4px;
+}
+
+.fin-card small{
+  display:block;
+  font-size:10px;
+  opacity:.7;
+  margin-top:2px;
+}
+
+/* cores */
+
+.fin-card.custo{
+  background:#f1f5f9;
+}
+
+.fin-card.venda{
+  background:#eef2ff;
+  border-color:#c7d2fe;
+  color:#3730a3;
+}
+
+.fin-card.lucro{
+  background:#ecfdf5;
+  border-color:#a7f3d0;
+  color:#065f46;
+}
+
+.fin-card.margem{
+  background:#fff7ed;
+  border-color:#fed7aa;
+  color:#9a3412;
+}
+
+.fin-card.cmv{
+  background:#ecfeff;
+  border-color:#a5f3fc;
+  color:#155e75;
+}
+
+.fin-card.cmv.danger{
+  background:#fee2e2;
+  border-color:#fecaca;
+  color:#991b1b;
+}
+
+/* mobile */
+
+@media(max-width:900px){
+  .financeiro-dashboard{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+
+
+.btn-loading{
+  position:relative;
+  pointer-events:none;
+  opacity:.9;
+}
+
+.btn-loading::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(15,23,42,.75);
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.btn-loading::before{
+  content:"";
+  position:absolute;
+  width:16px;
+  height:16px;
+  border:2px solid white;
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spinBtn .6s linear infinite;
+  z-index:2;
+}
+
+@keyframes spinBtn{
+  to{ transform:rotate(360deg); }
+}
+
+
+
+
+.empresa-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:900;
+  font-size:14px;
+  color:#fff;
+  margin-right:6px;
+}
+
+.empresa-header .verificado{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#2563eb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:900;
+  color:#fff;
+  box-shadow:0 0 0 2px rgba(37,99,235,.25);
+}
+
+@media(max-width:600px){
+  .empresa-header{
+    width:100%;
+    margin-bottom:4px;
+  }
+}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:12px;
+}
+.grid-4{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:12px;
+}
+#resultadoIngredientes{
+  z-index:50;
+}
+
+.item-busca{
+  padding:10px;
+  cursor:pointer;
+  font-weight:700;
+  border-bottom:1px solid #eee;
+}
+
+.item-busca:hover{
+  background:#ecfeff;
+} 
+
+
+  .modal-body{
+  position:relative;
+  z-index:1;
+  overflow-y:auto;
+}
+
+.modal{
+  z-index:999;
+}
+
+.modal-box{
+  position:relative;
+  z-index:1000;
+}
+</style>
+</head>
+
+<body>
+<!-- =========================
+     OVERLAY RESTAURANTE
+========================= -->
+<div id="loadingOverlay" class="overlay-loading">
+
+  <!-- Fundo animado -->
+  <div class="overlay-ambient"></div>
+
+  <!-- Talheres animados -->
+  <div class="cutlery">
+    <div class="fork"></div>
+    <div class="knife"></div>
+    <div class="plate"></div>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="overlay-center">
+    <h2>Trazendo suas fichas técnicas</h2>
+    <p>Organizando ingredientes e custos...</p>
+  </div>
+
+</div>
+
+   
+<div class="filters">
+
+<div class="empresa-header">
+  MERCATTO DELÍCIA
+  <span class="verificado">✔</span>
+</div>
+
+<input id="filtroNome" type="text" placeholder="Buscar por nome do prato">
+<select id="filtroTipo">
+<option value="">Todos os tipos</option>
+</select>
+
+<select id="filtroStatus">
+<option value="">Todos (Ativo + Desativado)</option>
+<option value="ativo">Somente ATIVOS</option>
+<option value="inativo">Somente DESATIVADOS</option>
+</select>
+
+<select id="filtroCMV">
+<option value="">CMV (todas as faixas)</option>
+<option value="lt30">CMV < 30%</option>
+<option value="30_35">CMV 30–35%</option>
+<option value="35_40">CMV 35–40%</option>
+<option value="gt40">CMV > 40%</option>
+</select>
+
+
+
+<select id="filtroSort">
+<option value="recent">Ordenar: Mais recente</option>
+<option value="cmv_desc">Maior CMV</option>
+<option value="margem_asc">Menor margem</option>
+<option value="lucro_desc">Maior lucro</option>
+<option value="custo_desc">Maior custo</option>
+<option value="az">A–Z</option>
+</select>
+
+<button class="btn-cadastrar" onclick="abrirCadastro()">
++ CADASTRAR
+</button>
+
+</div>
+
+<div id="cards" class="grid"></div>
+
+<!-- MODAL -->
+<div id="modal" class="modal" onclick="fechar()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <span class="close" onclick="fechar()">✕</span>
+
+<div class="modal-header">
+
+  <!-- COLUNA ESQUERDA -->
+<div class="modal-left">
+
+<img id="mFoto" class="modal-img">
+
+<div class="foto-upload">
+<label>FOTO DO PRATO</label>
+<input type="file" id="fotoPrato" accept="image/*">
+</div>
+
+<!-- HISTÓRICO -->
+<div id="historicoBox"></div>
+
+</div>
+
+  <!-- COLUNA DIREITA -->
+  <div class="modal-main">
+
+    <div id="mHeader"></div>
+
+    <div id="mBody" class="modal-body"></div>
+
+  </div>
+
+</div>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+async function fetchAll(table, select) {
+  const pageSize = 1000;
+  let from = 0;
+  let to = pageSize - 1;
+  let all = [];
+
+  while (true) {
+    const { data, error } = await sb
+      .from(table)
+      .select(select)
+      .range(from, to);
+
+    if (error) {
+      console.error("Erro ao buscar", table, error);
+      break;
+    }
+
+    if (!data || data.length === 0) break;
+
+    all = all.concat(data);
+
+    if (data.length < pageSize) break;
+
+    from += pageSize;
+    to += pageSize;
+  }
+
+  return all;
+}
+
+
+   
+const EMAILS_AUTORIZADOS_PRECO_IDEAL = [
+  "leonardo_henrique1@hotmail.com",
+  "souzanalbert58@gmail.com"
+];
+const EMAILS_AUTORIZADOS_EXCLUSAO = [
+  "leonardo_henrique1@hotmail.com",
+  "souzanalbert58@gmail.com",
+  "yanequeiroz123@gmail.com",   // 👈 exemplo
+  "annaluisasantos0822@gmail.com"  // 👈 exemplo
+];
+let usuarioEmailAtual = null;
+
+
+
+
+   async function carregarUsuarioAuth() {
+  const { data: sessionData } = await sb.auth.getSession();
+
+  if (!sessionData.session) {
+    console.warn("❌ Sessão não encontrada no iframe");
+    usuarioEmailAtual = null;
+    return;
+  }
+
+  const { data: { user } } = await sb.auth.getUser();
+  usuarioEmailAtual = user?.email || null;
+
+  console.log("✅ EMAIL AUTH NO IFRAME:", usuarioEmailAtual);
+}
+
+carregarUsuarioAuth();
+
+sb.auth.onAuthStateChange((_event, session) => {
+  usuarioEmailAtual = session?.user?.email || null;
+});
+
+
+
+/* =====================================================
+   UTIL
+===================================================== */
+const moeda = v =>
+  "R$ " + Number(v || 0).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+function formatPeso(valor, unidade){
+  const v = Number(valor || 0);
+
+  if(unidade === "KG"){
+    if(v < 1){
+      return (v * 1000).toLocaleString("pt-BR", {
+        maximumFractionDigits: 0
+      }) + " g";
+    }
+
+    return v.toLocaleString("pt-BR", {
+      maximumFractionDigits: 3
+    }) + " kg";
+  }
+
+  if(unidade === "L"){
+    if(v < 1){
+      return (v * 1000).toLocaleString("pt-BR", {
+        maximumFractionDigits: 0
+      }) + " ml";
+    }
+
+    return v.toLocaleString("pt-BR", {
+      maximumFractionDigits: 3
+    }) + " L";
+  }
+
+  return v.toLocaleString("pt-BR");
+}
+
+
+
+
+
+  
+/* =====================================================
+   STATE
+===================================================== */
+let pratos = [];
+let ingredientesBase = [];
+let impostosCache = [];
+let pratoAtual = null;
+let ingredienteSelecionado = null;
+let filtroTipoSelecionado = "";
+let pageSize = 20;        // 🔥 quantidade por carga
+let pageIndex = 0;       // 🔥 página atual
+let carregandoMais = false;
+let listaFiltrada = [];
+let draftPreco = {
+  markup: null,
+  preco: null
+};
+/* =====================================================
+   LOAD BASE
+===================================================== */
+async function carregarIngredientesBase(){
+  const { data, error } = await sb
+    .from("produtos")
+    .select("*")
+    .order("nome");
+
+  if(error) return alert("Erro ingredientes");
+  ingredientesBase = data;
+}
+
+async function carregarPratos(){
+  const { data, error } = await sb
+    .from("buffet")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  if(error) return alert("Erro pratos");
+  pratos = data;
+  // ❌ não renderiza aqui
+}
+
+
+async function calcularCMVPercentual(prato){
+  if(!prato.preco_venda || prato.preco_venda <= 0) return null;
+
+  const { data: itens } = await sb
+    .from("buffet_itens")
+    .select("custo_calculado")
+    .eq("buffet_id", prato.id);
+
+  const cmvBase = (itens || []).reduce(
+    (s,i)=> s + Number(i.custo_calculado || 0), 0
+  );
+
+  const { data: impostos } = await sb
+    .from("impostos")
+    .select("modalidade, valor")
+    .eq("buffet_id", prato.id);
+
+  let totalImpostos = 0;
+
+  (impostos || []).forEach(i=>{
+    if(i.modalidade === "FIXO")
+      totalImpostos += Number(i.valor);
+
+    if(i.modalidade === "PERCENTUAL")
+      totalImpostos += (cmvBase * Number(i.valor)) / 100;
+  });
+
+  const cmvFinal = cmvBase + totalImpostos;
+
+  return (cmvFinal / prato.preco_venda) * 100;
+}
+
+let cacheCMV = {};
+
+async function carregarCMVCache(){
+  cacheCMV = {};
+
+  const itens = await fetchAll("buffet_itens", "buffet_id, custo_calculado");
+  const impostos = await fetchAll("impostos", "buffet_id, modalidade, valor");
+
+  (itens || []).forEach(i => {
+    if (!i.buffet_id) return;
+    const bid = String(i.buffet_id).trim();
+
+    if (!cacheCMV[bid]) {
+      cacheCMV[bid] = { cmvBase: 0, impostos: [] };
+    }
+
+    cacheCMV[bid].cmvBase += Number(i.custo_calculado || 0);
+  });
+
+  (impostos || []).forEach(i => {
+    if (!i.buffet_id) return;
+    const bid = String(i.buffet_id).trim();
+
+    if (!cacheCMV[bid]) {
+      cacheCMV[bid] = { cmvBase: 0, impostos: [] };
+    }
+
+    cacheCMV[bid].impostos.push(i);
+  });
+
+  console.log("📦 cacheCMV OK:", cacheCMV);
+}
+
+function calcMetricsForList(p){
+  const dados = cacheCMV[p.id] || { cmvBase:0, impostos:[] };
+
+  let totalImpostos = 0;
+  (dados.impostos || []).forEach(i=>{
+    if(i.modalidade === "FIXO") totalImpostos += Number(i.valor);
+    if(i.modalidade === "PERCENTUAL")
+      totalImpostos += (Number(dados.cmvBase||0) * Number(i.valor||0)) / 100;
+  });
+
+  const custoBase = dados.cmvBase > 0
+    ? dados.cmvBase
+    : Number(p.custo_total || p.custo_unitario || 0);
+
+  const custoFinal = dados.cmvBase > 0
+    ? (dados.cmvBase + totalImpostos)
+    : Number(p.custo_total || p.custo_unitario || 0);
+
+  const pv = Number(p.preco_venda || 0);
+
+  const cmvPerc = pv > 0 ? (custoBase / pv) * 100 : null;
+  const lucro = pv > 0 ? (pv - custoFinal) : null;
+  const margem = pv > 0 ? (lucro / pv) * 100 : null;
+
+  return { custoBase, custoFinal, cmvPerc, lucro, margem };
+}
+
+function inRangeCMV(cmv, faixa){
+  if(!faixa) return true;
+  if(cmv == null || isNaN(cmv)) return false;
+
+  if(faixa === "lt30") return cmv < 30;
+  if(faixa === "30_35") return cmv >= 30 && cmv < 35;
+  if(faixa === "35_40") return cmv >= 35 && cmv < 40;
+  if(faixa === "gt40") return cmv >= 40;
+  return true;
+}
+
+function inRangeMargem(margem, faixa){
+  if(!faixa) return true;
+  if(margem == null || isNaN(margem)) return false;
+
+  if(faixa === "lt25") return margem < 25;
+  if(faixa === "25_30") return margem >= 25 && margem < 30;
+  if(faixa === "30_40") return margem >= 30 && margem < 40;
+  if(faixa === "gt40") return margem >= 40;
+  return true;
+}
+
+
+
+
+
+   
+function aplicarFiltros() {
+
+  window.scrollTo({ top:0, behavior:"smooth" });
+
+  const nomeFiltro = (filtroNome.value || "").toUpperCase().trim();
+  const tipoFiltro = filtroTipo.value;
+
+  const statusFiltro = (window.filtroStatus?.value || "");
+  const cmvFaixa = (window.filtroCMV?.value || "");
+  const sort = (window.filtroSort?.value || "recent");
+
+  // 1) filtra e já calcula métricas pra usar em faixa + sort
+  const base = [];
+
+  for(const p of pratos){
+    const nomeOk = !nomeFiltro || (p.nome || "").toUpperCase().includes(nomeFiltro);
+    const tipoOk = !tipoFiltro || p.tipo === tipoFiltro;
+
+    // status (p.ativo pode ser true/false/null)
+    const ativoBool = (p.ativo === false) ? false : true; // default: ativo
+    const statusOk =
+      !statusFiltro ||
+      (statusFiltro === "ativo" && ativoBool) ||
+      (statusFiltro === "inativo" && !ativoBool);
+
+    if(!nomeOk || !tipoOk || !statusOk) continue;
+
+    const m = calcMetricsForList(p);
+
+    const cmvOk = inRangeCMV(m.cmvPerc, cmvFaixa);
+if(!cmvOk) continue;
+
+    base.push({ p, m });
+  }
+
+  // 2) ordena
+  base.sort((a,b)=>{
+    if(sort === "az") return (a.p.nome||"").localeCompare(b.p.nome||"", "pt-BR");
+    if(sort === "cmv_desc") return (b.m.cmvPerc ?? -Infinity) - (a.m.cmvPerc ?? -Infinity);
+    if(sort === "margem_asc") return (a.m.margem ?? Infinity) - (b.m.margem ?? Infinity);
+    if(sort === "lucro_desc") return (b.m.lucro ?? -Infinity) - (a.m.lucro ?? -Infinity);
+    if(sort === "custo_desc") return (b.m.custoFinal ?? -Infinity) - (a.m.custoFinal ?? -Infinity);
+
+    // recent (padrão): usa created_at desc se existir, senão mantém ordem atual
+const da = Date.parse(a.p.created_at || "") || 0;
+const db = Date.parse(b.p.created_at || "") || 0;
+return db - da;
+  });
+
+  // 3) salva só os pratos (render usa o cacheCMV como antes)
+  listaFiltrada = base.map(x => x.p);
+
+  pageIndex = 0;
+  cards.innerHTML = "";
+  renderProximaPagina();
+}
+function renderProximaPagina() {
+  if (carregandoMais) return;
+
+  const inicio = pageIndex * pageSize;
+  if (inicio >= listaFiltrada.length) return; // ⛔ acabou tudo
+
+  carregandoMais = true;
+
+  const fim = inicio + pageSize;
+  const pagina = listaFiltrada.slice(inicio, fim);
+
+  for (const p of pagina) {
+    const dados = cacheCMV[p.id] || { cmvBase:0, impostos:[] };
+
+    let totalImpostos = 0;
+    dados.impostos.forEach(i=>{
+      if(i.modalidade === "FIXO") totalImpostos += Number(i.valor);
+      if(i.modalidade === "PERCENTUAL")
+        totalImpostos += (dados.cmvBase * Number(i.valor)) / 100;
+    });
+
+    const custoBase = dados.cmvBase > 0
+      ? dados.cmvBase
+      : Number(p.custo_total || p.custo_unitario || 0);
+
+    const custoTotal =
+      dados.cmvBase > 0
+        ? (dados.cmvBase + totalImpostos)
+        : Number(p.custo_total || p.custo_unitario || 0);
+
+    const cmvPerc =
+      p.preco_venda ? (custoBase / p.preco_venda) * 100 : null;
+
+    const lucro =
+      p.preco_venda ? p.preco_venda - custoTotal : null;
+
+    const margem =
+      p.preco_venda ? (lucro / p.preco_venda) * 100 : null;
+
+const c = document.createElement("div");
+c.className = "card";
+
+let clicks = 0;
+let clickTimer = null;
+
+c.addEventListener("click", async () => {
+  clicks++;
+
+  clearTimeout(clickTimer);
+
+  clickTimer = setTimeout(() => {
+    if (clicks === 1) {
+      abrirModal(p);
+    }
+    clicks = 0;
+  }, 350);
+
+  if (clicks === 3) {
+    clicks = 0;
+
+    const { data: { user } } = await sb.auth.getUser();
+    const email = user?.email || null;
+
+    const autorizado =
+      email && EMAILS_AUTORIZADOS_EXCLUSAO.includes(email);
+
+    if (!autorizado) {
+      alert("Você não tem permissão para excluir este item.");
+      return;
+    }
+
+    const confirmar = confirm(
+      `Deseja EXCLUIR o prato:\n\n${p.nome}\n\nEssa ação é irreversível.`
+    );
+    if (!confirmar) return;
+
+    const { error } = await sb
+      .from("buffet")
+      .delete()
+      .eq("id", p.id);
+
+    if (error) {
+      alert("Erro ao excluir.");
+      return;
+    }
+
+    alert("Prato excluído com sucesso.");
+    await carregarPratos();
+    aplicarFiltros(); // como você está usando paginação
+  }
+});
+    c.innerHTML = `
+      ${p.foto_url ? `<img src="${p.foto_url}">` : ``}
+      <div class="card-body">
+        <h3>${p.nome}</h3>
+        ${p.tempo_preparo ? `<div class="badge">⏱ ${p.tempo_preparo} min</div>` : ""}
+        <p class="desc-card">${p.descricao || ""}</p>
+        <div class="card-stats">
+          <div class="stat blue">📦 Tipo<b>${p.tipo || "—"}</b></div>
+          <div class="stat ${cmvPerc ? (cmvPerc > 35 ? "red" : "green") : ""}">
+            📊 CMV<b>${cmvPerc ? cmvPerc.toFixed(1) + "%" : "—"}</b>
+          </div>
+          <div class="stat ${margem ? (margem < 30 ? "red" : "green") : ""}">
+            📈 Margem<b>${margem ? margem.toFixed(1) + "%" : "—"}</b>
+          </div>
+          <div class="stat orange">🧾 Custo<b>${custoTotal > 0 ? moeda(custoTotal) : "—"}</b></div>
+          <div class="stat">💰 Venda<b>${p.preco_venda ? moeda(p.preco_venda) : "—"}</b></div>
+          <div class="stat ${lucro ? (lucro < 0 ? "red" : "green") : ""}">
+            🟢 Lucro<b>${lucro ? moeda(lucro) : "—"}</b>
+          </div>
+        </div>
+      </div>
+    `;
+
+    cards.appendChild(c);
+  }
+
+  pageIndex++;
+  carregandoMais = false;
+}
+filtroNome.addEventListener("input", aplicarFiltros);
+
+filtroTipo.addEventListener("change", () => {
+  filtroTipoSelecionado = filtroTipo.value;
+  aplicarFiltros();
+});
+filtroStatus.addEventListener("change", aplicarFiltros);
+filtroCMV.addEventListener("change", aplicarFiltros);
+filtroSort.addEventListener("change", aplicarFiltros);
+
+
+  
+/* =====================================================
+   MODAL
+===================================================== */
+async function abrirModal(p){
+  pratoAtual = p;
+  carregarHistoricoPrato(p.id);
+  modal.style.display = "flex";
+document.body.classList.add("modal-open");
+   mFoto.src = p.foto_url || "https://placehold.co/600x400?text=Sem+Foto";  
+/* INGREDIENTES */
+const { data: itens, error } = await sb
+  .from("buffet_itens")
+  .select(`
+    id,
+    nome,
+    quantidade,
+    unidade_uso,
+    custo_unitario,
+    custo_calculado,
+    produto:produtos!buffet_itens_produto_id_fkey (
+      energia_kcal,
+      carboidratos,
+      proteinas,
+      gorduras_totais,
+      fibra_alimentar,
+      sodio_mg
+    )
+  `)
+  .eq("buffet_id", p.id);
+
+const listaItens = Array.isArray(itens) ? itens : [];
+
+if (error) console.error("Erro ao buscar itens:", error);
+
+// ===============================
+// CALCULO FICHA NUTRICIONAL
+// ===============================
+const nutri = {
+  calorias: 0,
+  carboidratos: 0,
+  proteinas: 0,
+  gorduras: 0,
+  fibras: 0,
+  sodio: 0
+};
+
+listaItens.forEach(i => {
+  const qtd = Number(i.quantidade || 0);
+  const prod = i.produto;
+  if (!prod) return;
+
+  nutri.calorias     += Number(prod.energia_kcal || 0) * qtd;
+  nutri.carboidratos += Number(prod.carboidratos || 0) * qtd;
+  nutri.proteinas    += Number(prod.proteinas || 0) * qtd;
+  nutri.gorduras     += Number(prod.gorduras_totais || 0) * qtd;
+  nutri.fibras       += Number(prod.fibra_alimentar || 0) * qtd;
+  nutri.sodio        += Number(prod.sodio_mg || 0) * qtd;
+});
+
+const cmvBase = listaItens.reduce(
+  (s,i)=> s + Number(i.custo_calculado || 0), 0
+);
+
+  /* IMPOSTOS / CUSTOS */
+  const { data: impostos } = await sb
+    .from("impostos")
+    .select("*")
+    .eq("buffet_id", p.id);
+
+  impostosCache = impostos || [];
+
+  let totalImpostos = 0;
+  impostosCache.forEach(i=>{
+    if(i.modalidade==="FIXO") totalImpostos += Number(i.valor);
+    if(i.modalidade==="PERCENTUAL")
+      totalImpostos += (cmvBase * Number(i.valor))/100;
+  });
+
+const cmvFinal = cmvBase + totalImpostos;
+const precoVenda = Number(p.preco_venda||0);
+
+// ✅ CMV apenas em cima do custo base (ingredientes)
+const cmvPercentual = precoVenda
+  ? (cmvBase / precoVenda) * 100
+  : 0;
+
+const lucro = precoVenda ? precoVenda - cmvFinal : 0;
+const margem = precoVenda ? (lucro/precoVenda)*100 : 0;
+
+
+  mHeader.innerHTML = `
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+
+  <h2 id="tituloPrato" style="margin:0">
+    ${p.nome}
+  </h2>
+
+  <button class="btn-icon btn-edit"
+    title="Editar nome do prato"
+    onclick="editarNomePrato()">
+    ✏️
+  </button>
+
+  <span class="badge" style="
+    margin-left:6px;
+    background:#eef2ff;
+    color:#3730a3;
+    font-weight:800;
+  ">
+    ${p.tipo || "SEM TIPO"}
+  </span>
+
+</div>
+`;
+
+mBody.innerHTML = `
+<h3>Descrição do prato (texto do cardápio)</h3>
+
+<textarea
+  id="descricaoPrato"
+  placeholder="Ex: Salmão grelhado com arroz japonês e molho teriyaki."
+  style="
+    width:100%;
+    min-height:70px;
+    padding:14px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    font-size:14px;
+    font-family:Inter,sans-serif;
+    resize:vertical;
+  "
+>${p.descricao || ""}</textarea>
+
+
+
+
+
+
+
+
+<div class="grid-4" style="margin:14px 0">
+
+  <div>
+    <label>STATUS DO PRATO</label>
+    <select id="statusPrato">
+      <option value="true">ATIVO</option>
+      <option value="false">INATIVO</option>
+    </select>
+  </div>
+
+  <div>
+    <label>TIPO DO PRATO</label>
+    <select id="tipoPrato"></select>
+  </div>
+
+  <div>
+    <label>CARDÁPIO MESA/ONLINE</label>
+    <select id="cardapioPrato">
+      <option value="true">SIM</option>
+      <option value="false">NÃO</option>
+    </select>
+  </div>
+
+  <div>
+    <label>PARA DELIVERY</label>
+    <select id="deliveryPrato">
+      <option value="true">SIM</option>
+      <option value="false">NÃO</option>
+    </select>
+  </div>
+
+</div>
+
+<!-- 🔥 TEMPO VAI PRA LINHA DE BAIXO -->
+<div class="grid-2" style="margin-top:10px">
+  <div>
+    <label>⏱ TEMPO (MIN)</label>
+    <input id="tempoPreparo" type="number" placeholder="Ex: 25">
+  </div>
+</div>
+
+
+
+
+
+<hr>
+<hr>
+
+<div class="resumo">
+  <div class="box">Custo base<b>${moeda(cmvBase)}</b></div>
+  <div class="box">Operacional<b>${moeda(totalImpostos)}</b></div>
+  <div class="box">Custo final<b>${moeda(cmvFinal)}</b></div>
+  <div class="box">Margem<b>${margem.toFixed(1)}%</b></div>
+</div>
+
+
+
+
+<h3>Precificação</h3>
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr auto;
+gap:10px;
+align-items:end;
+margin-top:6px;
+">
+
+  <input 
+    id="markupPerc" 
+    type="number" 
+    step="0.01" 
+    placeholder="Markup (%)"
+  >
+
+  <input 
+    id="precoVendaInput" 
+    type="number" 
+    step="0.01" 
+    placeholder="Preço de venda (R$)"
+  >
+
+<button 
+  id="btnSalvarPreco"
+  class="btn-add"
+  style="
+    height:38px;
+    padding:0 18px;
+    white-space:nowrap;
+  "
+  onclick="salvarPrecoVenda(${cmvFinal})"
+>
+  SALVAR
+</button>
+
+</div>
+
+<p id="previewPreco" 
+style="
+margin-top:8px;
+font-size:13px;
+font-weight:700;
+color:#166534
+"></p>
+
+${precoVenda ? `
+
+<div class="financeiro-dashboard">
+
+  <div class="fin-card custo">
+    <span>Custo do prato</span>
+    <b>${moeda(cmvFinal)}</b>
+    <small>Ingredientes + operacionais</small>
+  </div>
+
+  <div class="fin-card venda">
+    <span>Preço de venda</span>
+    <b>${moeda(precoVenda)}</b>
+    <small>Valor cobrado ao cliente</small>
+  </div>
+
+  <div class="fin-card lucro">
+    <span>Lucro por prato</span>
+    <b>${moeda(lucro)}</b>
+    <small>Venda − custo total</small>
+  </div>
+
+  <div class="fin-card margem">
+    <span>Margem de lucro</span>
+    <b>${margem.toFixed(1)}%</b>
+    <small>Percentual de ganho</small>
+  </div>
+
+  <div class="fin-card cmv ${cmvPercentual>35?'danger':''}">
+    <span>CMV</span>
+    <b>${cmvPercentual.toFixed(1)}%</b>
+    <small>Custo ÷ venda</small>
+  </div>
+
+</div>
+
+` : ``}
+
+  <hr>
+<h3>Ingredientes</h3>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Ingrediente</th>
+      <th>Qtd</th>
+      <th>Un.</th>
+      <th>Custo Unit</th>
+      <th>Total</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+${listaItens.map(i=>`
+<tr>
+  <td><b>${i.nome}</b></td>
+
+<td>${formatPeso(i.quantidade, i.unidade_uso)}</td>
+
+  <td>${i.unidade_uso}</td>
+  <td>${moeda(i.custo_unitario)}</td>
+  <td><b>${moeda(i.custo_calculado)}</b></td>
+
+  <td class="acoes">
+    <button class="btn-icon btn-edit"
+      onclick="editarIngrediente('${i.id}')">✏️</button>
+    <button class="btn-icon btn-delete"
+      onclick="excluirIngrediente('${i.id}')">🗑️</button>
+  </td>
+</tr>
+`).join("")}
+  </tbody>
+</table>
+
+ <div class="precificacao compact-line">
+  <h3 style="margin:0 0 10px">Novo ingrediente e atualização</h3>
+
+  <div class="line-add">
+   <div style="position:relative">
+
+<input
+  id="ingBusca"
+  type="text"
+  placeholder="Buscar ingrediente..."
+  class="line-select"
+  autocomplete="off"
+>
+
+<div id="resultadoIngredientes" style="
+  position:absolute;
+  top:42px;
+  left:0;
+  right:0;
+  max-height:220px;
+  overflow-y:auto;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,.15);
+  display:none;
+  z-index:20;
+"></div>
+
+</div>
+
+    <input id="ingQtd" type="number" step="0.001" placeholder="Qtd" class="line-qtd">
+
+    <input id="ingUnidade" readonly placeholder="Un." class="line-unidade">
+
+    <button id="btnSalvarIngrediente" class="btn-add btn-line"
+      onclick="salvarIngrediente()">
+      ＋
+    </button>
+  </div>
+</div>
+  <hr>
+
+<h3>Custos / Impostos (planilha)</h3>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Descrição</th>
+      <th>Tipo</th>
+      <th>Modalidade</th>
+      <th>Valor</th>
+      <th>Total</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    ${impostosCache.map(i=>`
+      <tr>
+        <td><b>${i.descricao}</b></td>
+        <td>${i.tipo}</td>
+        <td>${i.modalidade}</td>
+        <td>${i.modalidade==="PERCENTUAL" ? i.valor+"%" : moeda(i.valor)}</td>
+        <td>
+          <b>${
+            i.modalidade==="PERCENTUAL"
+              ? moeda((cmvBase*i.valor)/100)
+              : moeda(i.valor)
+          }</b>
+        </td>
+        <td class="acoes">
+          <button class="btn-icon btn-delete"
+            onclick="excluirImposto('${i.id}')">🗑️</button>
+        </td>
+      </tr>
+    `).join("")}
+  </tbody>
+</table>
+
+  <div class="precificacao">
+    <h3>Novo custo / imposto</h3>
+
+    <input id="impDesc" placeholder="Descrição">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <select id="impTipo">
+        <option value="IMPOSTO">IMPOSTO</option>
+        <option value="CUSTO">CUSTO</option>
+      </select>
+
+      <select id="impModalidade">
+        <option value="FIXO">VALOR FIXO</option>
+        <option value="PERCENTUAL">PERCENTUAL (%)</option>
+      </select>
+    </div>
+
+    <input id="impValor" type="number" step="0.01" placeholder="Valor">
+
+    <button class="btn-add" style="margin-top:10px"
+      onclick="salvarImposto()">ADICIONAR</button>
+  </div>
+<hr>
+<hr>
+
+<h3>Tabela Nutricional (por prato)</h3>
+
+<div class="nutri-grid">
+  <div class="nutri-item">🔥 Calorias <b>${nutri.calorias.toFixed(1)} kcal</b></div>
+  <div class="nutri-item">🥩 Proteínas <b>${nutri.proteinas.toFixed(1)} g</b></div>
+  <div class="nutri-item">🍞 Carbo <b>${nutri.carboidratos.toFixed(1)} g</b></div>
+  <div class="nutri-item">🧈 Gorduras <b>${nutri.gorduras.toFixed(1)} g</b></div>
+  <div class="nutri-item">🌾 Fibras <b>${nutri.fibras.toFixed(1)} g</b></div>
+  <div class="nutri-item">🧂 Sódio <b>${nutri.sodio.toFixed(1)} mg</b></div>
+</div>
+
+<h3>Modo de preparo</h3>
+
+<textarea
+  id="modoPreparo"
+  placeholder="Descreva o modo de preparo do prato..."
+  style="
+    width:100%;
+    min-height:120px;
+    padding:14px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    font-size:14px;
+    font-family:Inter,sans-serif;
+    resize:vertical;
+  "
+>${p.modo_preparo || ""}</textarea>
+
+
+  
+`;
+
+
+
+// 🔥 agora o select existe → carrega os tipos
+await carregarTipos();
+
+// seta o tipo atual
+const selectTipo = document.getElementById("tipoPrato");
+if (selectTipo && p.tipo) {
+  selectTipo.value = p.tipo;
+}
+
+// salva ao mudar
+
+setTimeout(() => {
+  const selectTipo = document.getElementById("tipoPrato");
+  if (!selectTipo) return;
+
+  if (p.tipo) {
+    selectTipo.value = p.tipo;
+  }
+
+  selectTipo.onchange = async () => {
+    const tipo = selectTipo.value;
+    if (!tipo) return;
+
+    await sb
+      .from("buffet")
+      .update({ tipo })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+aplicarFiltros();
+  };
+}, 0);
+setTimeout(() => {
+  const inputFoto = document.getElementById("fotoPrato");
+  if (!inputFoto) return;
+
+  inputFoto.onchange = async () => {
+    const file = inputFoto.files[0];
+    if (!file) return;
+
+    const ext = file.name.split(".").pop();
+    const fileName = `${pratoAtual.id}.${ext}`;
+
+    const { error: uploadError } = await sb.storage
+      .from("buffet")
+      .upload(fileName, file, { upsert: true });
+
+    if (uploadError) {
+      alert("Erro ao enviar imagem");
+      return;
+    }
+
+    const { data } = sb.storage
+      .from("buffet")
+      .getPublicUrl(fileName);
+
+    const fotoUrl = data.publicUrl;
+
+    await sb
+      .from("buffet")
+      .update({ foto_url: fotoUrl })
+      .eq("id", pratoAtual.id);
+
+    mFoto.src = fotoUrl;
+
+    await carregarPratos();
+aplicarFiltros();
+  };
+}, 0);
+
+  setTimeout(() => {
+    const selectTipo = document.getElementById("tipoPrato");
+    if (selectTipo && p.tipo) {
+      selectTipo.value = p.tipo;
+    }
+  }, 0);
+setTimeout(() => {
+  const statusSelect = document.getElementById("statusPrato");
+  
+  if (!statusSelect) return;
+
+  statusSelect.value = p.ativo === false ? "false" : "true";
+
+  statusSelect.onchange = async () => {
+    const ativo = statusSelect.value === "true";
+
+    await sb
+      .from("buffet")
+      .update({ ativo })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+aplicarFiltros();
+  };
+}, 0);
+
+
+  setTimeout(() => {
+  const cardapioSelect = document.getElementById("cardapioPrato");
+  if (!cardapioSelect) return;
+
+  // define valor atual
+  cardapioSelect.value = p.cardapio === false ? "false" : "true";
+
+  cardapioSelect.onchange = async () => {
+
+    const cardapio = cardapioSelect.value === "true";
+
+    await sb
+      .from("buffet")
+      .update({ cardapio })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+    aplicarFiltros();
+  };
+
+},0);
+
+
+
+
+setTimeout(() => {
+  const deliverySelect = document.getElementById("deliveryPrato");
+  if (!deliverySelect) return;
+
+  deliverySelect.value = p.delivery === true ? "true" : "false";
+
+  deliverySelect.onchange = async () => {
+
+    const delivery = deliverySelect.value === "true";
+
+    await sb
+      .from("buffet")
+      .update({ delivery })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+    aplicarFiltros();
+  };
+
+}, 0);
+
+
+
+
+
+
+  
+
+
+
+  
+setTimeout(() => {
+  const mp = document.getElementById("modoPreparo");
+  if (!mp) return;
+
+  const valorInicial = (p.modo_preparo || "").trim();
+
+  mp.onblur = async () => {
+    const textoAtual = mp.value.trim();
+
+    // ❌ não mudou → não salva
+    if (textoAtual === valorInicial) return;
+
+    await sb
+      .from("buffet")
+      .update({ modo_preparo: textoAtual })
+      .eq("id", pratoAtual.id);
+  };
+}, 0);
+
+
+setTimeout(() => {
+  const desc = document.getElementById("descricaoPrato");
+
+  setTimeout(() => {
+  const tempo = document.getElementById("tempoPreparo");
+  if (!tempo) return;
+
+  const valorInicial = Number(pratoAtual.tempo_preparo || 0);
+
+  tempo.value = valorInicial || "";
+
+  tempo.onblur = async () => {
+    const novo = Number(tempo.value || 0);
+
+    if (novo === valorInicial) return;
+
+    await sb
+      .from("buffet")
+      .update({ tempo_preparo: novo })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+    aplicarFiltros();
+  };
+}, 0);
+  if (!desc) return;
+
+  const valorInicial = (p.descricao || "").trim();
+
+  desc.onblur = async () => {
+setTimeout(() => {
+  const tempo = document.getElementById("tempoPreparo");
+  if (!tempo) return;
+
+  const valorInicial = Number(p.tempo_preparo || 0);
+
+  tempo.value = valorInicial || "";
+
+  tempo.onblur = async () => {
+    const novo = Number(tempo.value || 0);
+
+    if (novo === valorInicial) return;
+
+    await sb
+      .from("buffet")
+      .update({ tempo_preparo: novo })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+    aplicarFiltros();
+  };
+}, 0);
+
+    
+    const textoAtual = desc.value.trim();
+    if (textoAtual === valorInicial) return;
+
+    await sb
+      .from("buffet")
+      .update({ descricao: textoAtual })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+aplicarFiltros();
+  };
+}, 0);
+
+setTimeout(async () => {
+  const input = document.getElementById("precoIdealInput");
+  if (!input) return;
+
+  const valorInicial = Number(p.preco_ideal || 0);
+
+  // 🔐 busca o usuário direto do Supabase (SEM race condition)
+  const { data: { user } } = await sb.auth.getUser();
+  const email = user?.email || null;
+
+  console.log("🔐 EMAIL NO MODAL:", email);
+
+  const autorizado =
+    email && EMAILS_AUTORIZADOS_PRECO_IDEAL.includes(email);
+
+  if (!autorizado) {
+    input.readOnly = true;
+    input.style.opacity = "0.6";
+    input.title =
+      "Apenas usuários autorizados podem alterar o preço sugerido";
+    return;
+  }
+
+  // ✅ autorizado → salva automático
+  input.onblur = async () => {
+    const novoValor = Number(input.value || 0);
+
+    if (novoValor === valorInicial) return;
+
+    if (novoValor <= 0) {
+      alert("Preço ideal inválido");
+      input.value = valorInicial || "";
+      return;
+    }
+
+    await sb
+      .from("buffet")
+      .update({ preco_ideal: novoValor })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+  };
+}, 0);
+
+setTimeout(async () => {
+  const input = document.getElementById("codigoVarejoInput");
+  if (!input) return;
+
+  const valorInicial = (p.codigo_varejo || "").trim();
+
+  const { data: { user } } = await sb.auth.getUser();
+  const email = user?.email || null;
+
+  const autorizado =
+    email && EMAILS_AUTORIZADOS_PRECO_IDEAL.includes(email);
+
+  if (!autorizado) {
+    input.readOnly = true;
+    input.style.opacity = "0.6";
+    input.title =
+      "Apenas usuários autorizados podem alterar o código do varejo";
+    return;
+  }
+
+  input.onblur = async () => {
+    const novoValor = input.value.trim();
+    if (novoValor === valorInicial) return;
+
+    await sb
+      .from("buffet")
+      .update({ codigo_varejo: novoValor })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+aplicarFiltros();
+  };
+}, 0);
+setTimeout(() => {
+  const mkInput = document.getElementById("markupPerc");
+  const precoInput = document.getElementById("precoVendaInput");
+  const preview = document.getElementById("previewPreco");
+
+  function atualizarPorMarkup() {
+    const mk = Number(mkInput.value || 0);
+    if (mk <= 0) return;
+
+    const preco = cmvFinal * (1 + mk / 100);
+    precoInput.value = preco.toFixed(2);
+
+    const lucro = preco - cmvFinal;
+    const margem = (lucro / preco) * 100;
+
+    preview.innerHTML = `
+      Preço: <b>${moeda(preco)}</b> •
+      Lucro: <b>${moeda(lucro)}</b> •
+      Margem: <b>${margem.toFixed(1)}%</b>
+    `;
+  }
+
+  function atualizarPorPreco() {
+    const preco = Number(precoInput.value || 0);
+    if (preco <= cmvFinal) return;
+
+    const mk = ((preco - cmvFinal) / cmvFinal) * 100;
+    mkInput.value = mk.toFixed(2);
+
+    const lucro = preco - cmvFinal;
+    const margem = (lucro / preco) * 100;
+
+    preview.innerHTML = `
+      Markup: <b>${mk.toFixed(1)}%</b> •
+      Lucro: <b>${moeda(lucro)}</b> •
+      Margem: <b>${margem.toFixed(1)}%</b>
+    `;
+  }
+
+  mkInput.oninput = atualizarPorMarkup;
+  precoInput.oninput = atualizarPorPreco;
+
+  // 🔁 RESTAURA O QUE O USUÁRIO DIGITOU ANTES
+  if (draftPreco.markup !== null) mkInput.value = draftPreco.markup;
+  if (draftPreco.preco  !== null) precoInput.value = draftPreco.preco;
+
+}, 50);
+
+
+
+setTimeout(() => {
+
+  const buscaInput = document.getElementById("ingBusca");
+  const resultadoBox = document.getElementById("resultadoIngredientes");
+
+  if (!buscaInput || !resultadoBox) return;
+
+  buscaInput.addEventListener("input", () => {
+
+    const termo = buscaInput.value.toLowerCase();
+
+    if (!termo) {
+      resultadoBox.style.display = "none";
+      return;
+    }
+
+    const filtrados = ingredientesBase
+      .filter(i => (i.nome || "").toLowerCase().includes(termo))
+      .slice(0, 20);
+
+    resultadoBox.innerHTML = filtrados.map(i => `
+      <div class="item-busca" data-id="${i.id}">
+        ${i.nome}
+      </div>
+    `).join("");
+
+    resultadoBox.style.display = "block";
+
+resultadoBox.querySelectorAll(".item-busca").forEach(el => {
+  el.onclick = () => {
+
+        const id = el.dataset.id;
+        const selecionado = ingredientesBase.find(i => i.id == id);
+
+        ingredienteSelecionado = selecionado;
+
+        buscaInput.value = selecionado.nome;
+        document.getElementById("ingUnidade").value =
+          selecionado.unidade_medida || "";
+
+        resultadoBox.style.display = "none";
+      };
+    });
+
+  });
+
+}, 200);
+
+
+
+
+
+
+  
+} // ✅ FECHA abrirModal(p)
+
+
+/* =====================================================
+   AÇÕES
+===================================================== */
+async function salvarPrecoVenda(cmvFinal){
+
+  const btn = document.getElementById("btnSalvarPreco");
+
+  const preco = Number(precoVendaInput.value || 0);
+  if (preco <= cmvFinal) {
+    alert("Preço inválido");
+    return;
+  }
+
+  btn.classList.add("btn-loading");
+
+  try{
+
+    await sb.from("buffet")
+      .update({ preco_venda: preco })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+
+    const pratoNovo = pratos.find(p => p.id === pratoAtual.id);
+
+    abrirModal(pratoNovo);
+
+  }catch(err){
+
+    console.error(err);
+    alert("Erro ao salvar");
+
+  }finally{
+
+    btn.classList.remove("btn-loading");
+
+  }
+
+}
+async function salvarIngrediente(){
+
+  const prod = ingredienteSelecionado;
+  if(!prod){
+    alert("Selecione um ingrediente na lista.");
+    return;
+  }
+
+  const qtdInput = document.getElementById("ingQtd");
+  const qtd = Number(qtdInput.value || 0);
+
+  if(qtd <= 0){
+    alert("Quantidade inválida.");
+    qtdInput.focus();
+    return;
+  }
+
+  const custoUnit = Number(prod.valor || 0);
+
+  try{
+
+    await sb
+      .from("buffet_itens")
+      .insert({
+        buffet_id: pratoAtual.id,
+        produto_id: prod.id,
+        nome: prod.nome,
+        quantidade: qtd,
+        unidade_uso: prod.unidade_medida,
+        custo_unitario: custoUnit,
+        custo_calculado: custoUnit * qtd
+      });
+
+    // 🔄 atualiza caches
+    await carregarCMVCache();
+    await carregarPratos();
+    aplicarFiltros();
+
+    salvarDraftPreco();
+
+    // 🔄 recarrega prato atualizado
+    const { data: pratoNovo } = await sb
+      .from("buffet")
+      .select("*")
+      .eq("id", pratoAtual.id)
+      .single();
+
+    // 🔄 limpa campos
+    ingredienteSelecionado = null;
+
+    const busca = document.getElementById("ingBusca");
+    const qtdField = document.getElementById("ingQtd");
+    const unidade = document.getElementById("ingUnidade");
+    const lista = document.getElementById("resultadoIngredientes");
+
+    if(busca) busca.value = "";
+    if(qtdField) qtdField.value = "";
+    if(unidade) unidade.value = "";
+    if(lista) lista.style.display = "none";
+
+    // 🔄 reabre modal atualizado
+    abrirModal(pratoNovo);
+
+  }catch(err){
+    console.error(err);
+    alert("Erro ao salvar ingrediente.");
+  }
+
+}
+async function excluirIngrediente(itemId){
+  if(!confirm("Excluir este ingrediente?")) return;
+
+  await sb
+    .from("buffet_itens")
+    .delete()
+    .eq("id", itemId);
+
+await carregarCMVCache();
+await carregarPratos();   // 🔁 atualiza lista
+aplicarFiltros();         // ✅ re-render com paginação
+
+salvarDraftPreco();   // 👈 AQUI
+
+const { data: pratoNovo } = await sb
+  .from("buffet")
+  .select("*")
+  .eq("id", pratoAtual.id)
+  .single();
+
+abrirModal(pratoNovo);
+}
+
+async function salvarImposto(){
+  const desc = impDesc.value.trim();
+  const tipo = impTipo.value;
+  const modalidade = impModalidade.value;
+  const valor = Number(impValor.value||0);
+
+  if(!desc || valor<=0) return;
+
+  await sb.from("impostos").insert({
+    buffet_id: pratoAtual.id,
+    descricao: desc,
+    tipo,
+    modalidade,
+    valor
+  });
+
+await carregarCMVCache();  // 🔁 atualiza cache
+await carregarPratos();    // 🔁 atualiza lista
+aplicarFiltros();          // ✅ re-render com paginação
+
+salvarDraftPreco();   // 👈 AQUI
+
+const { data: pratoNovo } = await sb
+  .from("buffet")
+  .select("*")
+  .eq("id", pratoAtual.id)
+  .single();
+
+abrirModal(pratoNovo);
+}
+
+async function excluirImposto(id){
+  await sb.from("impostos").delete().eq("id",id);
+
+await carregarCMVCache();  // 🔁 atualiza cache
+await carregarPratos();    // 🔁 atualiza lista
+aplicarFiltros();          // ✅ re-render com paginação
+
+salvarDraftPreco();   // 👈 AQUI
+
+const { data: pratoNovo } = await sb
+  .from("buffet")
+  .select("*")
+  .eq("id", pratoAtual.id)
+  .single();
+
+abrirModal(pratoNovo);
+}
+/* =====================================================
+   AUTO UNIDADE
+===================================================== */
+document.addEventListener("change", e => {
+  if (e.target.id === "ingProduto") {
+    const opt = e.target.selectedOptions[0];
+    ingUnidade.value = opt?.dataset?.unidade || "";
+  }
+});
+
+
+function fechar(){
+  modal.style.display = "none";
+  document.body.classList.remove("modal-open");
+}
+function salvarDraftPreco() {
+  const mk = document.getElementById("markupPerc");
+  const pv = document.getElementById("precoVendaInput");
+
+  draftPreco.markup = mk ? mk.value : null;
+  draftPreco.preco  = pv ? pv.value : null;
+}
+async function editarIngrediente(itemId){
+
+  const { data, error } = await sb
+    .from("buffet_itens")
+    .select("*")
+    .eq("id", itemId)
+    .single();
+
+  if(error){
+    alert("Erro ao carregar ingrediente");
+    return;
+  }
+
+  // encontra produto na base
+  const prod = ingredientesBase.find(p => p.id === data.produto_id);
+
+  if(!prod){
+    alert("Produto não encontrado");
+    return;
+  }
+
+  ingredienteSelecionado = prod;
+
+  // preenche busca
+  const busca = document.getElementById("ingBusca");
+  const qtd = document.getElementById("ingQtd");
+  const unidade = document.getElementById("ingUnidade");
+
+  busca.value = prod.nome;
+  qtd.value = data.quantidade;
+  unidade.value = data.unidade_uso;
+
+  document.querySelector(".line-add").scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+
+  qtd.focus();
+  qtd.select();
+
+  const btn = document.getElementById("btnSalvarIngrediente");
+
+  btn.innerText = "✔";
+  btn.classList.remove("btn-add");
+  btn.classList.add("btn-edit");
+
+btn.onclick = async () => {
+
+  const quantidade = Number(qtd.value || 0);
+  if(quantidade <= 0) return alert("Quantidade inválida");
+
+  const custoUnit = Number(prod.custo_unitario || prod.valor || 0);
+
+  btn.classList.add("btn-loading");   // 🔥 overlay no botão
+
+  try{
+
+    await sb
+      .from("buffet_itens")
+      .update({
+        quantidade: quantidade,
+        custo_unitario: custoUnit,
+        custo_calculado: custoUnit * quantidade
+      })
+      .eq("id", itemId);
+
+    await carregarCMVCache();
+    await carregarPratos();
+    aplicarFiltros();
+
+    const { data: pratoNovo } = await sb
+      .from("buffet")
+      .select("*")
+      .eq("id", pratoAtual.id)
+      .single();
+
+    btn.innerText = "＋";
+    btn.classList.remove("btn-edit");
+    btn.classList.add("btn-add");
+    btn.onclick = salvarIngrediente;
+
+    busca.value = "";
+    qtd.value = "";
+    unidade.value = "";
+
+    abrirModal(pratoNovo);
+
+  }catch(err){
+
+    console.error(err);
+    alert("Erro ao atualizar ingrediente");
+  }finally{
+
+    btn.classList.remove("btn-loading");
+
+  }
+
+};   // fecha btn.onclick
+}    // fecha editarIngrediente
+
+async function carregarTipos(){
+  const { data, error } = await sb
+    .from("buffet")
+    .select("tipo");
+
+  if(error){
+    console.error("Erro ao buscar tipos:", error);
+    return;
+  }
+
+  const tiposUnicos = [...new Set(
+    (data || [])
+      .map(i => (i.tipo || "").trim())
+      .filter(Boolean)
+  )].sort();
+
+  // filtro principal
+  if (window.filtroTipo) {
+    filtroTipo.innerHTML = `<option value="">Todos os tipos</option>` +
+      tiposUnicos.map(t => `<option value="${t}">${t}</option>`).join("");
+
+    // 🔁 mantém o filtro selecionado visualmente
+    if (filtroTipoSelecionado) {
+      filtroTipo.value = filtroTipoSelecionado;
+    }
+  }
+
+  // select do modal
+  const selectModal = document.getElementById("tipoPrato");
+  if (selectModal) {
+    selectModal.innerHTML = `
+      <option value="">SELECIONE</option>
+      ${tiposUnicos.map(t => `<option value="${t}">${t}</option>`).join("")}
+    `;
+  }
+}
+(async ()=>{
+  const overlay = document.getElementById("loadingOverlay");
+
+  await carregarIngredientesBase();
+  await carregarCMVCache();
+  await carregarPratos();
+  await carregarTipos();
+  aplicarFiltros();
+
+  setTimeout(()=>{
+    overlay.classList.add("hidden");
+  }, 1000);
+})();
+async function editarNomePrato(){
+  const h2 = document.getElementById("tituloPrato");
+  if (!h2 || !pratoAtual?.id) return;
+
+  const nomeAtual = h2.innerText.trim();
+
+  const novoNome = prompt("Novo nome do prato:", nomeAtual);
+  if (!novoNome || novoNome.trim() === nomeAtual) return;
+
+  const nomeFinal = novoNome.trim().toUpperCase();
+
+  const { error } = await sb
+    .from("buffet")
+    .update({ nome: nomeFinal })
+    .eq("id", pratoAtual.id);
+
+  if (error) {
+    alert("Erro ao salvar o nome");
+    return;
+  }
+
+  // 🔄 atualiza estado local
+  pratoAtual.nome = nomeFinal;
+
+  // atualiza o header do modal
+  h2.innerText = nomeFinal;
+await carregarCMVCache();  // 🔁 atualiza cache
+await carregarPratos();    // 🔁 atualiza lista
+aplicarFiltros();}
+
+window.addEventListener("scroll", () => {
+  const scrollTop =
+    window.pageYOffset || document.documentElement.scrollTop;
+
+  const windowHeight =
+    window.innerHeight || document.documentElement.clientHeight;
+
+  const fullHeight =
+    document.documentElement.scrollHeight || document.body.scrollHeight;
+
+  if (scrollTop + windowHeight >= fullHeight - 200) {
+    renderProximaPagina();
+  }
+});
+
+/* =========================
+   SCROLL BUTTON
+========================= */
+
+window.addEventListener("scroll", () => {
+
+  const btnTop = document.getElementById("btnTop");
+  if (!btnTop) return;
+
+  if (window.scrollY > 400) {
+    btnTop.classList.add("show");
+  } else {
+    btnTop.classList.remove("show");
+  }
+
+});
+
+function scrollToTop(){
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+
+
+function abrirCadastro(){
+
+document.getElementById("popupCadastro").style.display="flex"
+
+document.body.classList.add("modal-open")
+
+}
+
+function fecharCadastro(){
+
+document.getElementById("popupCadastro").style.display="none"
+
+document.body.classList.remove("modal-open")
+
+}
+
+async function carregarHistoricoPrato(buffetId){
+
+const { data, error } = await sb
+.from("historico_alteracao_fichas")
+.select("*")
+.eq("tabela","buffet")
+.eq("registro_id",buffetId)
+.order("alterado_em",{ascending:false})
+.limit(10)
+
+if(error){
+console.error(error)
+return
+}
+
+renderHistorico(data)
+
+}function renderHistorico(lista){
+
+const box = document.getElementById("historicoBox")
+
+if(!lista || lista.length===0){
+box.innerHTML="<p style='opacity:.5'>Sem histórico</p>"
+return
+}
+
+box.innerHTML = lista.map(r=>{
+
+const data = new Date(r.alterado_em).toLocaleString()
+
+return `
+<div class="h-item">
+
+<div>
+
+<strong>${data}</strong><br>
+
+${Object.keys(r.dados_depois||{})
+.map(k=>{
+
+const antes = r.dados_antes?.[k]
+const depois = r.dados_depois?.[k]
+
+if(antes===depois) return ""
+
+return `
+<div class="h-field">
+${k}: ${antes} → ${depois}
+</div>
+`
+
+}).join("")}
+
+</div>
+
+<div>
+
+<button class="h-restore"
+onclick="restaurar('${r.id}')">
+Restaurar
+</button>
+
+</div>
+
+</div>
+`
+
+}).join("")
+
+}
+  
+async function restaurar(id){
+
+const senha = prompt("Senha:");
+
+if(senha !== "8486"){
+  alert("Senha incorreta");
+  return;
+}
+
+const { error } = await sb.rpc("restaurar_historico",{ p_id:id });
+
+if(error){
+  console.error(error);
+  alert("Erro ao restaurar");
+  return;
+}
+
+alert("Registro restaurado");
+
+// 🔄 recarrega dados atualizados
+await carregarCMVCache();
+await carregarPratos();
+aplicarFiltros();
+
+// 🔄 recarrega o prato aberto no modal
+const { data: pratoNovo } = await sb
+  .from("buffet")
+  .select("*")
+  .eq("id", pratoAtual.id)
+  .single();
+
+// 🔄 reabre modal atualizado
+abrirModal(pratoNovo);
+
+}
+
+
+
+
+
+
+
+
+</script>
+
+<button id="btnTop" onclick="scrollToTop()">↑</button>
+
+
+
+<div id="popupCadastro" class="popupCadastro">
+
+<div class="popupCadastroBox">
+
+<div class="popupCadastroHeader">
+
+<span>Cadastrar nova ficha técnica</span>
+
+<button onclick="fecharCadastro()">✕</button>
+
+</div>
+
+<iframe src="administracao/cadastrodeficha.html"></iframe>
+</div>
+
+</div>
+</body>
+</html>
