@@ -1,175 +1,134 @@
+import fetch from "node-fetch"
+import { createClient } from "@supabase/supabase-js"
+
 export default async function handler(req, res){
-
-  console.log("🚀 === INÍCIO ENVIO WHATSAPP ===")
-
-  if(req.method !== "POST"){
-    console.log("❌ Método inválido:", req.method)
-    return res.status(405).json({ error: "Método não permitido" })
-  }
 
   try{
 
-    const {
-      telefone,
-      mensagem,
-      media_url,
-      tipo,
-      nome_arquivo
-    } = req.body
-
-    console.log("📥 BODY RECEBIDO:", req.body)
-
-    if(!telefone){
-      console.log("❌ Telefone não enviado")
-      return res.status(400).json({ error: "Telefone obrigatório" })
-    }
-
-    /* ===============================
-       CONFIG WHATSAPP
-    =============================== */
-
-    const TOKEN = process.env.WHATSAPP_TOKEN
+    const VERIFY_TOKEN = process.env.VERIFY_TOKEN
+    const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN
     const PHONE_ID = process.env.WHATSAPP_PHONE_ID
+    const OPENAI_KEY = process.env.OPENAI_API_KEY
 
-    console.log("🔐 ENV CHECK:", {
-      TOKEN: TOKEN ? "OK" : "FALTA",
-      PHONE_ID
-    })
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE
+    )
 
-    if(!TOKEN || !PHONE_ID){
-      console.log("❌ Credenciais ausentes")
-      return res.status(500).json({
-        error: "Credenciais do WhatsApp não configuradas"
+    /* ================= VERIFICAÇÃO ================= */
+    if(req.method === "GET"){
+
+      const mode = req.query["hub.mode"]
+      const token = req.query["hub.verify_token"]
+      const challenge = req.query["hub.challenge"]
+
+      if(mode === "subscribe" && token === VERIFY_TOKEN){
+        return res.status(200).send(challenge)
+      }
+
+      return res.status(403).end()
+    }
+
+    /* ================= MENSAGEM ================= */
+    if(req.method === "POST"){
+
+      console.log("📥 WEBHOOK:", JSON.stringify(req.body,null,2))
+
+      const change = req.body?.entry?.[0]?.changes?.[0]?.value
+
+      if(!change){
+        return res.status(200).end()
+      }
+
+      if(change.statuses){
+        return res.status(200).end()
+      }
+
+      const msg = change.messages?.[0]
+      if(!msg){
+        return res.status(200).end()
+      }
+
+      const from = msg.from
+      const text = msg.text?.body || "[MÍDIA]"
+
+      console.log("📩 CLIENTE:", from)
+      console.log("💬 TEXTO:", text)
+
+      /* SALVA */
+      await supabase.from("mensagens").insert({
+        numero: from,
+        mensagem: text,
+        origem: "cliente"
       })
-    }
 
-    /* ===============================
-       MAPEAR TIPO
-    =============================== */
+      /* IA */
+      let resposta = "Erro ao responder"
 
-    const tipoMap = {
-      imagem: "image",
-      video: "video",
-      audio: "audio",
-      documento: "document",
-      texto: "text"
-    }
+      try{
+        const ai = await fetch("https://api.openai.com/v1/chat/completions",{
+          method:"POST",
+          headers:{
+            Authorization:`Bearer ${OPENAI_KEY}`,
+            "Content-Type":"application/json"
+          },
+          body: JSON.stringify({
+            model:"gpt-4o-mini",
+            messages:[
+              {role:"system",content:"Você é atendente do Mercatto Delícia"},
+              {role:"user",content:text}
+            ]
+          })
+        }).then(r=>r.json())
 
-    const tipoConvertido = tipoMap[tipo] || "text"
+        resposta = ai?.choices?.[0]?.message?.content || resposta
 
-    console.log("📦 Tipo convertido:", tipoConvertido)
-
-    /* ===============================
-       PAYLOAD
-    =============================== */
-
-    let payload = {
-      messaging_product: "whatsapp",
-      to: telefone
-    }
-
-    // TEXTO
-    if(!media_url){
-      payload.type = "text"
-      payload.text = {
-        body: mensagem || ""
-      }
-    }
-
-    // MIDIA
-    else{
-
-      payload.type = tipoConvertido
-
-      if(tipoConvertido === "image"){
-        payload.image = {
-          link: media_url,
-          caption: mensagem || ""
-        }
+      }catch(e){
+        console.log("❌ OPENAI:", e)
       }
 
-      if(tipoConvertido === "video"){
-        payload.video = {
-          link: media_url,
-          caption: mensagem || ""
-        }
+      /* ENVIO */
+      try{
+        const envio = await fetch(
+          `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+          {
+            method:"POST",
+            headers:{
+              Authorization:`Bearer ${WHATSAPP_TOKEN}`,
+              "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+              messaging_product:"whatsapp",
+              to:from,
+              type:"text",
+              text:{ body:resposta }
+            })
+          }
+        )
+
+        const retorno = await envio.json()
+        console.log("📤 META:", retorno)
+
+      }catch(e){
+        console.log("❌ WHATS:", e)
       }
 
-      if(tipoConvertido === "audio"){
-        payload.audio = {
-          link: media_url
-        }
-      }
-
-      if(tipoConvertido === "document"){
-        payload.document = {
-          link: media_url,
-          filename: nome_arquivo || "arquivo"
-        }
-      }
-    }
-
-    console.log("📤 PAYLOAD FINAL:", JSON.stringify(payload, null, 2))
-
-    /* ===============================
-       ENVIO META
-    =============================== */
-
-    const url = `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`
-
-    console.log("🌐 URL:", url)
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${TOKEN}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    })
-
-    const data = await response.json()
-
-    console.log("📥 RESPOSTA META:", data)
-    console.log("📊 STATUS HTTP:", response.status)
-
-    /* ===============================
-       ERRO META
-    =============================== */
-
-    if(!response.ok){
-
-      console.log("❌ ERRO WHATSAPP DETECTADO")
-
-      return res.status(400).json({
-        error: "Erro ao enviar mensagem",
-        status: response.status,
-        details: data
+      /* SALVA BOT */
+      await supabase.from("mensagens").insert({
+        numero: from,
+        mensagem: resposta,
+        origem: "bot"
       })
+
+      return res.status(200).end()
     }
 
-    /* ===============================
-       SUCESSO
-    =============================== */
+    return res.status(200).end()
 
-    const messageId = data?.messages?.[0]?.id
+  }catch(err){
 
-    console.log("✅ MENSAGEM ENVIADA:", messageId)
-    console.log("🏁 === FIM ENVIO ===")
+    console.log("💥 ERRO:", err)
 
-    return res.status(200).json({
-      success: true,
-      message_id: messageId,
-      meta_response: data
-    })
-
-  }catch(e){
-
-    console.log("💥 ERRO INTERNO:", e)
-
-    return res.status(500).json({
-      error: "Erro interno",
-      details: e.message
-    })
+    return res.status(200).end()
   }
 }
