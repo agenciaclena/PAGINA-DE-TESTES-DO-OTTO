@@ -606,8 +606,8 @@ console.log("📩 TIPO RECEBIDO:", msg.type)
 
   
 // ignora mensagens do próprio bot
-if(mensagensRecebidas[0]?.from === change.metadata.phone_number_id){
-console.log("Mensagem do próprio bot ignorada")
+if(mensagensRecebidas[0]?.from === process.env.WHATSAPP_PHONE_ID){
+  console.log("Mensagem do próprio bot ignorada")
 return res.status(200).end()
 }
 
