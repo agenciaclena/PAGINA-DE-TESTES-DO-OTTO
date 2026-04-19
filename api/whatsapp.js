@@ -55,8 +55,7 @@ export default async function handler(req, res) {
       const from = msg.from
       const message_id = msg.id
       const text = msg.text?.body || "[MÍDIA]"
-      const phone_id = change.metadata.phone_number_id
-
+const phone_id = process.env.WHATSAPP_PHONE_ID
       console.log("📩 CLIENTE:", from)
       console.log("💬 TEXTO:", text)
       console.log("🆔 MESSAGE ID:", message_id)
