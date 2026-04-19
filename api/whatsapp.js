@@ -13,6 +13,17 @@ const openai = new OpenAI({
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN
 
+/* ================= LOGGER ================= */
+
+function log(step, data = null){
+  console.log("================================")
+  console.log(`🧩 STEP: ${step}`)
+  if(data){
+    console.log(JSON.stringify(data, null, 2))
+  }
+  console.log("================================")
+}
+
 /* ================= UTIL ================= */
 
 function agoraBahia(){
@@ -25,7 +36,9 @@ function agoraBahia(){
 
 async function enviarMensagem(to, texto, phone_number_id){
 
-  await fetch(`https://graph.facebook.com/v19.0/${phone_number_id}/messages`,{
+  log("ENVIANDO MENSAGEM", { to, texto })
+
+  const resp = await fetch(`https://graph.facebook.com/v19.0/${phone_number_id}/messages`,{
     method:"POST",
     headers:{
       Authorization:`Bearer ${WHATSAPP_TOKEN}`,
@@ -39,6 +52,10 @@ async function enviarMensagem(to, texto, phone_number_id){
     })
   })
 
+  const json = await resp.json()
+
+  log("RESPOSTA META", json)
+
 }
 
 /* ================= BAIXAR MIDIA ================= */
@@ -46,6 +63,8 @@ async function enviarMensagem(to, texto, phone_number_id){
 async function baixarMidia(mediaId){
 
   try{
+
+    log("BAIXANDO MIDIA", { mediaId })
 
     const meta = await fetch(
       `https://graph.facebook.com/v19.0/${mediaId}`,
@@ -56,6 +75,8 @@ async function baixarMidia(mediaId){
 
     const json = await meta.json()
 
+    log("URL MIDIA", json)
+
     const file = await fetch(json.url,{
       headers:{ Authorization:`Bearer ${WHATSAPP_TOKEN}` }
     })
@@ -64,25 +85,34 @@ async function baixarMidia(mediaId){
 
     const path = `whatsapp/${Date.now()}.bin`
 
-    await supabase.storage
+    const { error } = await supabase.storage
       .from("buffet_whatsa_mercatto")
       .upload(path, buffer)
+
+    if(error){
+      log("ERRO UPLOAD", error)
+      return null
+    }
 
     const { data } = supabase.storage
       .from("buffet_whatsa_mercatto")
       .getPublicUrl(path)
 
+    log("MIDIA SALVA", data)
+
     return data.publicUrl
 
   }catch(e){
-    console.log("ERRO MIDIA:",e)
+    log("ERRO MIDIA", e)
     return null
   }
 }
 
-/* ================= AGENTE IA ================= */
+/* ================= IA ================= */
 
 async function gerarRespostaIA(historico, mensagem){
+
+  log("GERANDO RESPOSTA IA", { mensagem })
 
   const completion = await openai.chat.completions.create({
     model:"gpt-4.1-mini",
@@ -90,13 +120,10 @@ async function gerarRespostaIA(historico, mensagem){
       {
         role:"system",
         content:`
-Você é um atendente do Mercatto Delícia.
+Você é atendente do Mercatto Delícia.
 
-Regras:
-- Seja direto e humano
-- Não invente
-- Não fale demais
-- Responda igual WhatsApp
+Seja direto, humano e objetivo.
+Nunca invente.
 `
       },
       ...historico,
@@ -104,30 +131,41 @@ Regras:
     ]
   })
 
-  return completion.choices[0].message.content
+  const resposta = completion.choices[0].message.content
+
+  log("RESPOSTA IA", resposta)
+
+  return resposta
 }
 
 /* ================= HANDLER ================= */
 
 export default async function handler(req,res){
 
+log("🚀 NOVA REQUISIÇÃO", {
+  metodo: req.method
+})
+
 /* ================= VERIFY ================= */
 
 if(req.method === "GET"){
+
+  log("VERIFICAÇÃO WEBHOOK", req.query)
 
   const mode = req.query["hub.mode"]
   const token = req.query["hub.verify_token"]
   const challenge = req.query["hub.challenge"]
 
   if(mode === "subscribe" && token === VERIFY_TOKEN){
-    console.log("✅ Webhook verificado")
+    log("WEBHOOK VALIDADO")
     return res.status(200).send(challenge)
   }
 
+  log("WEBHOOK NEGADO")
   return res.status(403).end()
 }
 
-/* ================= RECEBER ================= */
+/* ================= POST ================= */
 
 if(req.method === "POST"){
 
@@ -135,9 +173,12 @@ if(req.method === "POST"){
 
     const body = req.body
 
+    log("BODY RECEBIDO", body)
+
     const change = body.entry?.[0]?.changes?.[0]?.value
 
     if(!change){
+      log("EVENTO INVÁLIDO")
       return res.status(200).end()
     }
 
@@ -149,6 +190,8 @@ if(req.method === "POST"){
 
       const status = change.statuses[0]
 
+      log("STATUS RECEBIDO", status)
+
       await supabase
       .from("conversas_whatsapp")
       .update({ status: status.status })
@@ -157,26 +200,34 @@ if(req.method === "POST"){
       return res.status(200).end()
     }
 
-/* ================= MENSAGEM ================= */
+/* ================= MSG ================= */
 
     const msg = change.messages?.[0]
 
     if(!msg){
+      log("SEM MENSAGEM")
       return res.status(200).end()
     }
 
     const cliente = msg.from
     const message_id = msg.id
 
-/* ================= ANTI DUPLICIDADE ================= */
+    log("MENSAGEM RECEBIDA", {
+      cliente,
+      message_id,
+      tipo: msg.type
+    })
 
-    const { data: jaExiste } = await supabase
+/* ================= DUPLICIDADE ================= */
+
+    const { data: existe } = await supabase
       .from("mensagens_processadas")
       .select("*")
       .eq("message_id", message_id)
       .maybeSingle()
 
-    if(jaExiste){
+    if(existe){
+      log("MENSAGEM DUPLICADA IGNORADA", message_id)
       return res.status(200).end()
     }
 
@@ -184,7 +235,7 @@ if(req.method === "POST"){
       .from("mensagens_processadas")
       .insert({ message_id })
 
-/* ================= TRATAR MSG ================= */
+/* ================= TRATAR ================= */
 
     let mensagem = ""
     let tipo = "texto"
@@ -218,6 +269,12 @@ if(req.method === "POST"){
         mensagem = "[Não suportado]"
     }
 
+    log("MENSAGEM TRATADA", {
+      mensagem,
+      tipo,
+      media_url
+    })
+
 /* ================= SALVAR ================= */
 
     await supabase
@@ -231,6 +288,8 @@ if(req.method === "POST"){
       message_id,
       status:"received"
     })
+
+    log("SALVO NO BANCO")
 
 /* ================= HISTÓRICO ================= */
 
@@ -248,11 +307,13 @@ if(req.method === "POST"){
         content: m.mensagem
       }))
 
+    log("HISTÓRICO MONTADO", historico)
+
 /* ================= IA ================= */
 
     const resposta = await gerarRespostaIA(historico, mensagem)
 
-/* ================= ENVIAR ================= */
+/* ================= ENVIO ================= */
 
     await enviarMensagem(cliente, resposta, phone_number_id)
 
@@ -266,10 +327,14 @@ if(req.method === "POST"){
       role:"assistant"
     })
 
+    log("RESPOSTA FINAL ENVIADA")
+
     return res.status(200).end()
 
   }catch(e){
-    console.log("ERRO GERAL:", e)
+
+    log("ERRO GERAL", e)
+
     return res.status(200).end()
   }
 }
