@@ -1,152 +1,178 @@
 import fetch from "node-fetch"
-import OpenAI from "openai"
 import { createClient } from "@supabase/supabase-js"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+/* ================= CONFIG ================= */
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-export default async function handler(req, res) {
+/* ================= HANDLER ================= */
 
-  /* ================= VERIFICAÇÃO WEBHOOK ================= */
+export default async function handler(req, res){
 
-  if (req.method === "GET") {
+/* ================= VERIFY ================= */
 
-    const verifyToken = process.env.VERIFY_TOKEN
+if(req.method === "GET"){
 
-    if (
-      req.query["hub.mode"] === "subscribe" &&
-      req.query["hub.verify_token"] === verifyToken
-    ) {
-      console.log("✅ Webhook verificado")
-      return res.status(200).send(req.query["hub.challenge"])
-    }
+  const VERIFY_TOKEN = process.env.VERIFY_TOKEN
 
-    return res.status(403).end()
+  if(
+    req.query["hub.mode"] === "subscribe" &&
+    req.query["hub.verify_token"] === VERIFY_TOKEN
+  ){
+    console.log("✅ WEBHOOK VERIFICADO")
+    return res.status(200).send(req.query["hub.challenge"])
   }
 
-  /* ================= RECEBER MENSAGEM ================= */
+  return res.sendStatus(403)
+}
 
-  if (req.method === "POST") {
+/* ================= RECEBER ================= */
 
-    try {
+if(req.method === "POST"){
 
-      const body = req.body
-      const change = body.entry?.[0]?.changes?.[0]?.value
+  try{
 
-      if (!change) return res.status(200).end()
+    const body = req.body
 
-      /* ===== STATUS ===== */
-      if (change.statuses) {
-        return res.status(200).end()
-      }
+    console.log("📥 WEBHOOK:", JSON.stringify(body,null,2))
 
-      /* ===== SEM MENSAGEM ===== */
-      if (!change.messages) return res.status(200).end()
+    const change = body?.entry?.[0]?.changes?.[0]?.value
 
-      const msg = change.messages[0]
+    if(!change){
+      console.log("❌ Sem change")
+      return res.sendStatus(200)
+    }
 
-      /* ===== IGNORA PRÓPRIO BOT ===== */
-      const numeroBot = change.metadata.display_phone_number
+    /* ===== STATUS ===== */
+    if(change.statuses){
+      console.log("📩 STATUS RECEBIDO")
+      return res.sendStatus(200)
+    }
 
-      if (msg.from === numeroBot) {
-        console.log("⚠️ Ignorando mensagem do bot")
-        return res.status(200).end()
-      }
+    /* ===== MENSAGEM ===== */
+    const msg = change.messages?.[0]
 
-      const cliente = msg.from
-      const message_id = msg.id
-      const texto = msg.text?.body || ""
+    if(!msg){
+      console.log("❌ Sem mensagem")
+      return res.sendStatus(200)
+    }
 
-      console.log("📩 MENSAGEM:", texto)
+    const from = msg.from
+    const message_id = msg.id
+    const texto = msg.text?.body || ""
 
-      /* ================= SALVAR CLIENTE ================= */
+    console.log("📩 CLIENTE:", from)
+    console.log("💬 TEXTO:", texto)
 
-      await supabase
-        .from("conversas_whatsapp")
-        .insert({
-          telefone: cliente,
-          mensagem: texto,
-          role: "user",
-          message_id: message_id,
-          status: "received"
-        })
+    /* ================= IGNORA BOT ================= */
 
-      /* ================= IA ================= */
+    const numeroBot = change.metadata.display_phone_number
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4.1-mini",
-        messages: [
-          {
-            role: "system",
-            content: `
-Você é um assistente administrativo do Mercatto Delícia.
+    if(from === numeroBot){
+      console.log("⚠️ Ignorando mensagem do próprio bot")
+      return res.sendStatus(200)
+    }
 
-Regras:
-- Responda curto e direto
-- Seja educado
-- Ajude com reservas, dúvidas e atendimento
-- Nunca invente informações
-`
-          },
-          {
-            role: "user",
-            content: texto
-          }
-        ]
-      })
+    /* ================= SALVAR CLIENTE ================= */
 
-      const resposta = completion.choices[0].message.content
+    await supabase.from("mensagens").insert({
+      numero: from,
+      mensagem: texto,
+      origem: "cliente",
+      message_id: message_id
+    })
 
-      console.log("🤖 RESPOSTA:", resposta)
+    /* ================= OPENAI ================= */
 
-      /* ================= ENVIAR WHATSAPP ================= */
+    let resposta = "Desculpe, tive um problema agora 😅"
 
-      const url = `https://graph.facebook.com/v19.0/${process.env.WHATSAPP_PHONE_ID}/messages`
+    try{
 
-      const envio = await fetch(url, {
+      const ai = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to: cliente,
-          type: "text",
-          text: { body: resposta }
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `
+Você é um assistente administrativo do Mercatto Delícia.
+
+Regras:
+- Seja educado
+- Responda curto e direto
+- Ajude com reservas, dúvidas e atendimento
+- Nunca invente informações
+`
+            },
+            {
+              role: "user",
+              content: texto
+            }
+          ]
         })
       })
 
-      const retorno = await envio.json()
+      const json = await ai.json()
 
-      console.log("📤 META:", retorno)
+      console.log("🤖 OPENAI:", json)
 
-      const messageId = retorno?.messages?.[0]?.id
+      if(json?.choices?.[0]?.message?.content){
+        resposta = json.choices[0].message.content
+      }
 
-      /* ================= SALVAR RESPOSTA ================= */
-
-      await supabase
-        .from("conversas_whatsapp")
-        .insert({
-          telefone: cliente,
-          mensagem: resposta,
-          role: "assistant",
-          message_id: messageId,
-          status: "sent"
-        })
-
-      return res.status(200).end()
-
-    } catch (err) {
-
-      console.log("❌ ERRO:", err)
-      return res.status(200).end()
+    }catch(err){
+      console.log("❌ ERRO OPENAI:", err)
     }
+
+    console.log("🧠 RESPOSTA FINAL:", resposta)
+
+    /* ================= ENVIAR WHATSAPP ================= */
+
+    const url = `https://graph.facebook.com/v19.0/${process.env.WHATSAPP_PHONE_ID}/messages`
+
+    const envio = await fetch(url,{
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: from,
+        type: "text",
+        text: { body: resposta }
+      })
+    })
+
+    const retorno = await envio.json()
+
+    console.log("📤 META RETORNO:", retorno)
+
+    /* ================= SALVAR RESPOSTA ================= */
+
+    await supabase.from("mensagens").insert({
+      numero: from,
+      mensagem: resposta,
+      origem: "bot",
+      message_id: retorno?.messages?.[0]?.id || null
+    })
+
+    return res.sendStatus(200)
+
+  }catch(err){
+
+    console.log("❌ ERRO GERAL:", err)
+    return res.sendStatus(200)
+
   }
+}
+
 }
