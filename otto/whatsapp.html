@@ -4,7 +4,7 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Gestor de Conversas</title>
+<title>Gestor de Conversas • Mercatto Delícia</title>
 
 <meta name="viewport"
 content="width=device-width,
@@ -59,13 +59,11 @@ body{
 /* ================= SIDEBAR ================= */
 
 .sidebar{
-  width:380px;
-  min-width:380px;
-  max-width:380px;
-  background:var(--sidebar);
-  border-right:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
+width:380px;
+background:var(--sidebar);
+border-right:1px solid var(--border);
+display:flex;
+flex-direction:column;
 }
 
 /* HEADER */
@@ -107,31 +105,25 @@ padding-bottom:10px;
 /* CARD CLIENTE (🔥 PRINCIPAL) */
 
 .client{
-  display:flex;
-  gap:10px;
-  align-items:center;
+display:flex;
+gap:14px;
+align-items:center;
 
-  height:72px;          /* 🔥 ALTURA FIXA */
-  min-height:72px;
-  max-height:72px;
+background:white;
 
-  padding:8px 10px;
-  position:relative; /* 🔥 ESSENCIAL */
-  background:white;
-  margin:4px 8px;
-  border-radius:10px;
-  border-bottom:1px solid #e5e7eb;
+margin:10px 16px;
+padding:14px;
 
- overflow:visible;      /* 🔥 impede estourar */
+border-radius:16px;
+
+box-shadow:0 2px 6px rgba(0,0,0,0.05);
+
+cursor:pointer;
+transition:.2s;
 }
 
 .client:hover{
-  background:#f9fafb;
-  transform:none;
-}
-
-.client:hover{
-transform:none;
+transform:scale(1.01);
 }
 
 /* PAUSADO */
@@ -143,47 +135,44 @@ background:#fee2e2;
 /* AVATAR */
 
 .avatar{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:#e5e7eb;
+width:52px;
+height:52px;
+border-radius:50%;
+background:#e5e7eb;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+display:flex;
+align-items:center;
+justify-content:center;
 
-  font-weight:600;
-  font-size:13px;
+font-weight:700;
+color:#111827;
 
-  flex-shrink:0;
+flex-shrink:0;
 }
 
 /* TEXTOS */
+
 .phone{
-  font-weight:600;
-  font-size:13px;
-  color:#111827;
+font-weight:700;
+font-size:15px;
+color:#111827;
 }
+
 .preview{
-  font-size:12px;
-  color:#6b7280;
-
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:normal;
-  line-height:1.3;
+font-size:13px;
+color:var(--muted);
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+max-width:200px;
 }
 
 /* STATUS */
 
 .status{
-  font-size:10px;
-  margin-top:2px;
-  font-weight:600;
+font-size:11px;
+margin-top:4px;
+font-weight:600;
 }
 
 .status.on{
@@ -197,34 +186,17 @@ color:#dc2626;
 /* MENU */
 
 .menuDots{
-  margin-left:auto;
-  cursor:pointer;
-  font-size:16px;
-  opacity:.5;
-  color:#111827;
-
-  width:36px;
-  height:36px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border-radius:8px;
+margin-left:auto;
+cursor:pointer;
+font-size:18px;
+opacity:.5;
+color:#111827;
 }
-
-
 
 .menuDots:hover{
-  background:#f3f4f6;
-  opacity:1;
+opacity:1;
 }
 
-.menuDots:active{
-  transform:scale(0.9);
-}
-
-  
 .menu{
 position:absolute;
 background:white;
@@ -263,7 +235,7 @@ background:var(--chat);
 /* HEADER CHAT */
 
 .chat-header{
-  padding:10px 16px; /* 🔥 diminui altura */
+padding:18px 22px;
 border-bottom:1px solid #334155;
 display:flex;
 justify-content:space-between;
@@ -273,7 +245,7 @@ color:white;
 
 .chat-title{
 font-weight:700;
-font-size:14px;
+font-size:15px;
 }
 
 /* BOTÕES */
@@ -495,10 +467,11 @@ background:#f3f4f6;
 }
   
 .sidebar{
-  background:#f4f4f5;
-  border-right:1px solid #e5e7eb;
-  display:flex;
-  flex-direction:column;
+width:380px;
+background:var(--sidebar);
+border-right:1px solid var(--border);
+display:flex;
+flex-direction:column;
 }
 
 /* 🔥 MOBILE CORRETO */
@@ -638,60 +611,6 @@ margin-top:6px;
   }
 
 }
-
-
-.notificacao {
-  position:absolute;
-
-  top:6px;     /* 🔥 canto superior */
-  right:6px;   /* 🔥 canto direito */
-
-  transform:none; /* 🔥 remove centralização */
-
-  width:10px;
-  height:10px;
-  border-radius:50%;
-
-  background:#ef4444;
-
-  border:2px solid white;
-  z-index:10;
-
-  animation:pulse 1s infinite;
-}
-
-@keyframes pulse{
-  0%{ transform:scale(1); opacity:1 }
-  50%{ transform:scale(1.4); opacity:0.6 }
-  100%{ transform:scale(1); opacity:1 }
-}
-
-
-@media (min-width:1400px){
-
-  body{
-    justify-content:center;
-  }
-
-  .sidebar{
-    max-width:480px;
-    font-size:14px;
-  }
-
-  .client{
-    padding:10px 12px;
-  }
-
-  .avatar{
-    width:44px;
-    height:44px;
-  }
-
-}
-body{
-  justify-content:center;
-}
-  
 </style>
 </head>
 
@@ -747,25 +666,9 @@ background:#020617;
 <script>
 
 const db = supabase.createClient(
-"https://tezettizyvrzzdiskhgn.supabase.co",
-"sb_publishable_1kWk8XBUKcbxvGTZiYwezg_Z-IAwlkg"
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
-
-
-
-const audioMsg = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
-
-audioMsg.volume = 1
-
-function tocarSom(){
-  audioMsg.currentTime = 0
-  audioMsg.play().catch(()=>{})
-}
-
-let ultimaMensagemId = null
-
-
-  
 let pagina = 0
 const limite = 20
 let carregando = false
@@ -828,71 +731,59 @@ container.innerHTML = ""
 
 for (const c of clientes){
 
-const div = document.createElement("div")
-div.setAttribute("data-telefone", c.telefone)
+  const div = document.createElement("div")
+
   const inicial = c.telefone.slice(-2)
 
   const pausado = await verificarPausa(c.telefone)
 
   div.className = pausado ? "client pausado" : "client"
 
-const date = new Date(c.created_at + "Z")
-  const hora = date.toLocaleTimeString("pt-BR",{
-  hour:"2-digit",
-  minute:"2-digit",
-  timeZone:"America/Bahia"
-})
-
-div.innerHTML = `
+  div.innerHTML = `
 <div class="avatar">
   <img 
     src="https://ui-avatars.com/api/?name=${nomes[c.telefone] || c.telefone}&background=25d366&color=fff&size=128"
     style="width:100%;height:100%;border-radius:50%">
 </div>
+    <div>
+      <div class="phone">
+        ${nomes[c.telefone] || c.telefone}
+      </div>
 
-<div style="flex:1; overflow:hidden">
-<div style="display:flex;justify-content:space-between;align-items:flex-start">
-<div class="phone">
-      ${nomes[c.telefone] || c.telefone}
+      <div class="preview">${c.mensagem}</div>
+
+      <div class="status ${pausado?'off':'on'}">
+        ● ${pausado?'BOT PAUSADO':'BOT ATIVO'}
+      </div>
     </div>
-  </div>
 
-  <div class="preview">${c.mensagem}</div>
+<div class="menuDots" onclick="event.stopPropagation(); abrirMenu(event,'${c.telefone}')">⋮</div>
+    <div class="menu" id="menu-${c.telefone}">
+      <button onclick="editarContato('${c.telefone}')">
+        Editar contato
+      </button>
 
-<div style="display:flex;align-items:center;margin-top:2px">
-
-  <div class="status ${pausado?'off':'on'}">
-    ● ${pausado?'BOT PAUSADO':'BOT ATIVO'}
-  </div>
-
-  <div style="margin-left:auto;margin-right:6px">
-    <div class="hora" style="font-size:11px;color:#6b7280">
-      ${hora}
+      <button onclick="toggleBot('${c.telefone}')" style="
+        background:${pausado?'#22c55e':'#ef4444'};
+        color:white;
+        padding:6px 10px;
+        border-radius:6px;
+        font-size:12px;
+      ">
+        ${pausado ? "ATIVAR BOT" : "DESATIVAR BOT"}
+      </button>
     </div>
-  </div>
-
-</div>
-
-
-
-
-</div>
-
-${c.role === "user" && c.mensagem ? '<div class="notificacao"></div>' : ''}
-
-<div class="menuDots"
-onclick="event.stopPropagation(); abrirMenu(event,'${c.telefone}')">
-⋮
-</div>
-`
+  `
 
   /* 🔥 CLICK CORRETO */
 
 div.addEventListener("click", () => {
-if(window.innerWidth <= 768){
-window.location.href = "chat.html?telefone=" + c.telefone
-return
-}
+
+  // 📱 Se for celular → abre outra página
+  if(window.innerWidth <= 768){
+window.location.assign("chat.html?telefone=" + c.telefone)
+  return
+  }
 
   // 💻 Se for desktop → iframe normal
   abrirChatIframe(c.telefone)
@@ -966,14 +857,16 @@ await db
 .delete()
 .in("id",selecionadas)
 
-abrirConversa(telefone)
+abrirConversa(clienteSelecionado)
+
 }
 
 async function excluirConversa(){
 
 if(!clienteSelecionado) return
 
-if(!confirm("⚠️ Tem certeza que deseja excluir TODA a conversa?\nEssa ação não pode ser desfeita.")) return
+if(!confirm("Excluir conversa completa?")) return
+
 await db
 .from("conversas_whatsapp")
 .delete()
@@ -981,11 +874,8 @@ await db
 
 document.getElementById("mensagens").innerHTML='<div class="empty">Conversa excluída</div>'
 
-// 🔥 REMOVE DA TELA DIRETO
-const card = document.querySelector(`[data-telefone="${clienteSelecionado}"]`)
-if(card){
-  card.remove()
-}
+carregarClientes()
+
 }
 
 document.getElementById("buscar").addEventListener("input",function(){
@@ -1060,12 +950,6 @@ box.innerHTML = `
 <button class="menuAction ${pausado ? 'menuAtivar' : 'menuDesativar'}"
 onclick="toggleBot('${telefone}'); fecharMenu()">
 ${pausado ? "▶️ Ativar BOT" : "⛔ Desativar BOT"}
-</button>
-
-<!-- 🔥 NOVO BOTÃO -->
-<button class="menuAction menuDesativar"
-onclick="clienteSelecionado='${telefone}'; excluirConversa(); fecharMenu()">
-Excluir conversa
 </button>
 
 <button class="menuCancel" onclick="fecharMenu()">
@@ -1148,23 +1032,8 @@ pausado:true
 
 }
 
-// 🔥 ATUALIZA SÓ O CARD
-const card = document.querySelector(`[data-telefone="${telefone}"]`)
+carregarClientes()
 
-if(card){
-
-  const pausado = novoStatus
-
-  card.classList.toggle("pausado", pausado)
-
-  const statusEl = card.querySelector(".status")
-
-  if(statusEl){
-    statusEl.innerHTML = `● ${pausado?'BOT PAUSADO':'BOT ATIVO'}`
-    statusEl.className = "status " + (pausado ? "off" : "on")
-  }
-
-}
 }
 
 
@@ -1262,14 +1131,8 @@ nome:novoNome
 
 }
 
-const card = document.querySelector(`[data-telefone="${telefone}"]`)
+carregarClientes()
 
-if(card){
-  const phoneEl = card.querySelector(".phone")
-  if(phoneEl){
-    phoneEl.innerText = novoNome
-  }
-}
 if(clienteSelecionado === telefone){
 abrirChatIframe(telefone)}
 
@@ -1343,11 +1206,7 @@ const date = new Date(m.created_at)
 div.innerHTML = `
 <div>${m.mensagem}</div>
 <div class="time">
-${date.toLocaleTimeString("pt-BR",{
-  hour:"2-digit",
-  minute:"2-digit",
-  timeZone:"America/Bahia"
-})}
+${date.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}
 </div>
 `
 
@@ -1407,8 +1266,8 @@ async function atualizarClientesSilencioso(){
 
     const {data} = await db
     .from("conversas_whatsapp")
-.select("telefone,mensagem,created_at,role")
-      .order("created_at",{ascending:false})
+    .select("telefone,mensagem,created_at")
+    .order("created_at",{ascending:false})
     .limit(50) // 🔥 evita travamento
 
     const {data:memoria} = await db
@@ -1430,21 +1289,8 @@ async function atualizarClientesSilencioso(){
     const clientes = Object.values(map)
 
     /* 🔥 LOOP CORRETO (SEM forEach async) */
-for(const c of clientes){
+    for(const c of clientes){
 
-  // 🔥 IDENTIFICADOR UNICO
-  const idAtual = c.telefone + "_" + c.created_at
-
-  // 🔊 TOCA SOM SE FOR NOVA MENSAGEM DO CLIENTE
-  if(ultimaMensagemId && ultimaMensagemId !== idAtual && c.role === "user"){
-    tocarSom()
-  }
-
-  // salva ultima
-  ultimaMensagemId = idAtual
-
-
-  
       let card = document.querySelector(`[data-telefone="${c.telefone}"]`)
 
       const pausado = await verificarPausa(c.telefone)
@@ -1453,59 +1299,26 @@ for(const c of clientes){
       /* 🔥 SE NÃO EXISTE → IGNORA (NÃO CRIA) */
       if(!card) continue
 
-
-
-
-
-
       /* 🔥 ATUALIZA SEM RECRIAR */
       const phoneEl = card.querySelector(".phone")
       const previewEl = card.querySelector(".preview")
       const statusEl = card.querySelector(".status")
-      const date = new Date(c.created_at + "Z")
 
-const hora = date.toLocaleTimeString("pt-BR",{
-  hour:"2-digit",
-  minute:"2-digit",
-  timeZone:"America/Bahia"
-})
-
-const horaEl = card.querySelector(".hora")
-
-if(horaEl){
-  horaEl.innerText = hora
-}
       if(phoneEl && phoneEl.innerText !== nome){
         phoneEl.innerText = nome
       }
 
-// ✅ sempre atualiza mensagem
-if(previewEl){
-  previewEl.innerText = c.mensagem
-}
+      if(previewEl && previewEl.innerText !== c.mensagem){
+        previewEl.innerText = c.mensagem
 
-// 🔴 CONTROLE DA BOLINHA (CORRETO)
-let notif = card.querySelector(".notificacao")
+        // 🔥 efeito leve (sem travar UI)
+        card.style.transition = "0.2s"
+        card.style.background = "#dcfce7"
 
-// 🔥 só mostra bolinha se última mensagem for do cliente
-if(c.role === "user"){
-
-  if(!notif){
-    const dot = document.createElement("div")
-    dot.className = "notificacao"
-    card.appendChild(dot)
-  }
-
-}else{
-
-  if(notif){
-    notif.remove()
-  }
-
-}
-
-
-  
+        setTimeout(()=>{
+          card.style.background = ""
+        },300)
+      }
 
       if(statusEl){
         statusEl.innerHTML = `● ${pausado?'BOT PAUSADO':'BOT ATIVO'}`
@@ -1525,36 +1338,11 @@ if(c.role === "user"){
 
 setInterval(() => {
   atualizarClientesSilencioso()
-}, 2000)
-window.addEventListener("popstate", () => {
+}, 5000)
 
-  // 🔥 quando voltar
-  document.getElementById("frameChat").src = ""
-  document.getElementById("clienteAtual").innerText = "Selecione um cliente"
 
-})
+
   
-window.addEventListener("pageshow", () => {
-
-  console.log("⚡ Voltou para a tela")
-
-  // 🔥 NÃO recria tudo
-  // 🔥 só atualiza o que mudou
-  atualizarClientesSilencioso()
-
-})
-document.addEventListener("click", () => {
-  audioMsg.play().then(()=>{
-    audioMsg.pause()
-    audioMsg.currentTime = 0
-  }).catch(()=>{})
-}, { once:true })
-
-
-
-
-
-
 
   
 </script>
