@@ -14,7 +14,8 @@ const supabase = createClient(
 /* 🔐 NUMEROS ADM */
 const ADMINS = [
   "557798253249",
-  "557798315510"
+  "557798315510",
+  "16315551181" // 🔥 TESTE META
 ]
 
 /* 🌎 TIMEZONE */
