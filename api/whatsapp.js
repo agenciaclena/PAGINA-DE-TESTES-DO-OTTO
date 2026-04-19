@@ -774,8 +774,7 @@ const { data: memoriaCliente } = await supabase
 
 let nomeMemoria = memoriaCliente?.nome || null
 const ADMIN_NUMERO = "557798253249"
-const phone_number_id = change?.metadata?.phone_number_id
-
+const phone_number_id = process.env.WHATSAPP_PHONE_ID
 if(!phone_number_id){
   console.log("❌ phone_number_id não encontrado")
   return res.status(200).end()
